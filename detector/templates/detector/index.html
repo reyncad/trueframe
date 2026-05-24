@@ -154,6 +154,10 @@
       background: #1a1a0d;
       border: 1px solid #5c4e1a;
     }
+    .result-card.manipulated {
+      background: #1a0d0d;
+      border: 1px solid #c2410c;
+    }
 
     .result-label {
       font-size: 2rem;
@@ -164,6 +168,7 @@
     .result-card.real .result-label { color: #4ade80; }
     .result-card.fake .result-label { color: #e879f9; }
     .result-card.uncertain .result-label { color: #facc15; }
+    .result-card.manipulated .result-label { color: #fb923c; }
 
     .result-confidence {
       font-size: 0.95rem;
@@ -204,6 +209,7 @@
     .result-card.real .result-img { border-color: #1a5c38; }
     .result-card.fake .result-img { border-color: #5c1a5c; }
     .result-card.uncertain .result-img { border-color: #5c4e1a; }
+    .result-card.manipulated .result-img { border-color: #c2410c; }
 
     .try-again {
       display: inline-block;
@@ -261,7 +267,7 @@
 
 {% else %}
 <div class="card">
-  <div class="result-card {% if 'BELİRSİZ' in result.label %}uncertain{% elif result.is_ai_generated %}fake{% else %}real{% endif %}">
+  <div class="result-card {% if result.label == 'MANİPÜLE EDİLMİŞ' %}manipulated{% elif 'BELİRSİZ' in result.label %}uncertain{% elif result.is_ai_generated %}fake{% else %}real{% endif %}">
     <img class="result-img" src="data:image/jpeg;base64,{{ img_b64 }}" alt="{{ filename }}">
 
     <div class="result-label">{{ result.label }}</div>
