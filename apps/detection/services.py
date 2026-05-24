@@ -1,58 +1,125 @@
 """
-CNN Detection Service — fine-tuned TrueFrame modeli ile AI vs Real tespiti.
+TrueFrame Detection Service — v2 (CLIP + FFT) ve v1 (fallback) destekler.
+v2 modeli varsa ONNX Runtime ile hızlı inference yapar, yoksa v1'e düşer.
 """
-
+import json
+import numpy as np
 from pathlib import Path
 from PIL import Image
-import torch
-from transformers import AutoFeatureExtractor, AutoModelForImageClassification
-import numpy as np
 
-MODEL_PATH = Path(__file__).resolve().parents[2] / "models" / "true_frame_model"
+import torch
+from torchvision import transforms
+
+MODEL_V2_DIR = Path(__file__).resolve().parents[2] / "models" / "trueframe_v2"
+MODEL_V1_DIR = Path(__file__).resolve().parents[2] / "models" / "true_frame_model"
 FALLBACK_MODEL = "dima806/ai_vs_real_image_detection"
 
+IMG_SIZE = 224
+RAW_TRANSFORM = transforms.Compose([
+    transforms.Resize((IMG_SIZE, IMG_SIZE)),
+    transforms.ToTensor(),
+])
 
-class CNNDetectionService:
+
+class DetectionService:
     def __init__(self):
-        self._model = None
-        self._feature_extractor = None
+        self._mode = None          # "v2_onnx" | "v2_torch" | "v1"
+        self._ort_session = None
+        self._clip_processor = None
+        self._v1_extractor = None
+        self._v1_model = None
+        self._v2_model = None
 
     def _load(self):
-        if self._model is not None:
+        if self._mode is not None:
             return
 
-        model_source = str(MODEL_PATH) if MODEL_PATH.exists() else FALLBACK_MODEL
-        if not MODEL_PATH.exists():
-            print(f"[CNNDetectionService] Fine-tuned model bulunamadı, base model kullanılıyor: {FALLBACK_MODEL}")
+        # --- v2 ONNX ---
+        onnx_path = MODEL_V2_DIR / "model.onnx"
+        if onnx_path.exists():
+            try:
+                import onnxruntime as ort
+                from transformers import CLIPProcessor
+                config = json.loads((MODEL_V2_DIR / "config.json").read_text())
+                self._clip_processor = CLIPProcessor.from_pretrained(config["clip_model"])
+                self._ort_session = ort.InferenceSession(
+                    str(onnx_path), providers=["CPUExecutionProvider"]
+                )
+                self._mode = "v2_onnx"
+                print("[TrueFrame] v2 ONNX modeli yüklendi")
+                return
+            except Exception as e:
+                print(f"[TrueFrame] ONNX yüklenemedi ({e}), PyTorch'a düşülüyor")
 
-        self._feature_extractor = AutoFeatureExtractor.from_pretrained(model_source)
-        self._model = AutoModelForImageClassification.from_pretrained(model_source)
-        self._model.eval()
+        # --- v2 PyTorch ---
+        pt_path = MODEL_V2_DIR / "model.pt"
+        if pt_path.exists():
+            try:
+                import sys
+                sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+                from train_v2 import TrueFrameV2
+                from transformers import CLIPProcessor
+                config = json.loads((MODEL_V2_DIR / "config.json").read_text())
+                self._clip_processor = CLIPProcessor.from_pretrained(config["clip_model"])
+                model = TrueFrameV2(config["clip_model"])
+                model.load_state_dict(torch.load(pt_path, map_location="cpu"))
+                model.eval()
+                self._v2_model = model
+                self._mode = "v2_torch"
+                print("[TrueFrame] v2 PyTorch modeli yüklendi")
+                return
+            except Exception as e:
+                print(f"[TrueFrame] v2 PyTorch yüklenemedi ({e}), v1'e düşülüyor")
 
-    def predict(self, image_path: str) -> dict:
-        """
-        Fotoğrafın gerçek mi yapay mı olduğunu tahmin eder.
+        # --- v1 fallback ---
+        from transformers import AutoFeatureExtractor, AutoModelForImageClassification
+        src = str(MODEL_V1_DIR) if MODEL_V1_DIR.exists() else FALLBACK_MODEL
+        self._v1_extractor = AutoFeatureExtractor.from_pretrained(src)
+        self._v1_model = AutoModelForImageClassification.from_pretrained(src)
+        self._v1_model.eval()
+        self._mode = "v1"
+        print(f"[TrueFrame] v1 modeli yüklendi: {src}")
 
-        Döner:
-            {
-                "is_ai_generated": bool,
-                "label": "GERÇEK" | "YAPAY",
-                "confidence": float,   # 0-100 arası yüzde
-                "real_prob": float,
-                "fake_prob": float,
-            }
-        """
-        self._load()
+    def _predict_pil_v2_onnx(self, img: Image.Image) -> dict:
+        clip_inputs = self._clip_processor(images=img, return_tensors="pt")
+        raw = RAW_TRANSFORM(img).unsqueeze(0)
+        # FFT dışarıda hesaplanır (ONNX fft_fft2 desteklemiyor)
+        gray = raw.mean(dim=1, keepdim=True)
+        import torch
+        fft_shift = torch.fft.fftshift(torch.fft.fft2(gray))
+        magnitude = torch.log1p(torch.abs(fft_shift))
+        mag_min = magnitude.amin(dim=(-2, -1), keepdim=True)
+        mag_max = magnitude.amax(dim=(-2, -1), keepdim=True)
+        fft_magnitude = ((magnitude - mag_min) / (mag_max - mag_min + 1e-8)).numpy()
+        logits = self._ort_session.run(None, {
+            "pixel_values": clip_inputs["pixel_values"].numpy().astype(np.float32),
+            "fft_magnitude": fft_magnitude.astype(np.float32),
+        })[0]
+        return self._logits_to_result(logits[0])
 
-        image = Image.open(image_path).convert("RGB")
-        inputs = self._feature_extractor(images=image, return_tensors="pt")
-
+    def _predict_pil_v2_torch(self, img: Image.Image) -> dict:
+        clip_inputs = self._clip_processor(images=img, return_tensors="pt")
+        raw = RAW_TRANSFORM(img).unsqueeze(0)
         with torch.no_grad():
-            outputs = self._model(**inputs)
+            logits = self._v2_model(clip_inputs["pixel_values"], raw)
+        return self._logits_to_result(logits[0].numpy())
 
+    def _predict_pil_v1(self, img: Image.Image) -> dict:
+        inputs = self._v1_extractor(images=img, return_tensors="pt")
+        with torch.no_grad():
+            outputs = self._v1_model(**inputs)
         probs = torch.softmax(outputs.logits, dim=-1).squeeze().tolist()
-        pred_id = int(np.argmax(probs))
+        return self._probs_to_result(probs)
 
+    @staticmethod
+    def _logits_to_result(logits: np.ndarray) -> dict:
+        exp = np.exp(logits - logits.max())
+        probs = exp / exp.sum()
+        return DetectionService._probs_to_result(probs.tolist())
+
+    @staticmethod
+    def _probs_to_result(probs: list) -> dict:
+        pred_id = int(np.argmax(probs))
         label_map = {0: "GERÇEK", 1: "YAPAY"}
         return {
             "is_ai_generated": pred_id == 1,
@@ -63,21 +130,18 @@ class CNNDetectionService:
         }
 
     def predict_pil(self, image: Image.Image) -> dict:
-        """PIL Image nesnesiyle doğrudan çalışır (dosya yolu gerekmez)."""
         self._load()
+        img = image.convert("RGB")
+        if self._mode == "v2_onnx":
+            return self._predict_pil_v2_onnx(img)
+        elif self._mode == "v2_torch":
+            return self._predict_pil_v2_torch(img)
+        else:
+            return self._predict_pil_v1(img)
 
-        inputs = self._feature_extractor(images=image.convert("RGB"), return_tensors="pt")
-        with torch.no_grad():
-            outputs = self._model(**inputs)
+    def predict(self, image_path: str) -> dict:
+        return self.predict_pil(Image.open(image_path))
 
-        probs = torch.softmax(outputs.logits, dim=-1).squeeze().tolist()
-        pred_id = int(np.argmax(probs))
 
-        label_map = {0: "GERÇEK", 1: "YAPAY"}
-        return {
-            "is_ai_generated": pred_id == 1,
-            "label": label_map[pred_id],
-            "confidence": round(probs[pred_id] * 100, 2),
-            "real_prob": round(probs[0] * 100, 2),
-            "fake_prob": round(probs[1] * 100, 2),
-        }
+# Geriye dönük uyumluluk (eski views.py CNNDetectionService'i import ediyorsa)
+CNNDetectionService = DetectionService

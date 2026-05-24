@@ -1,0 +1,10 @@
+{
+  "clip_model": "openai/clip-vit-base-patch32",
+  "architecture": "TrueFrameV2_CLIP_FFT",
+  "best_val_acc": 0.9592508225765629,
+  "classes": [
+    "real",
+    "fake"
+  ],
+  "input_size": 224
+}

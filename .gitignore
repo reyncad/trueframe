@@ -21,6 +21,11 @@ data/_download/
 # Trained model weights — too large for git
 models/true_frame_model/model.safetensors
 models/true_frame_model/checkpoint-*/
+models/trueframe_v2/model.pt
+models/trueframe_v2/model.onnx
+
+# v2 dataset (downloaded via download_dataset_v2.py)
+data/v2/
 
 # Django
 *.log
