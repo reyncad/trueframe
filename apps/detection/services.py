@@ -15,6 +15,7 @@ MODEL_V1_DIR = Path(__file__).resolve().parents[2] / "models" / "true_frame_mode
 FALLBACK_MODEL = "dima806/ai_vs_real_image_detection"
 
 IMG_SIZE = 224
+TEMPERATURE = 1.8  # Skor kalibrasyonu: yüksek → daha ihtiyatlı tahminler
 RAW_TRANSFORM = transforms.Compose([
     transforms.Resize((IMG_SIZE, IMG_SIZE)),
     transforms.ToTensor(),
@@ -113,18 +114,35 @@ class DetectionService:
 
     @staticmethod
     def _logits_to_result(logits: np.ndarray) -> dict:
-        exp = np.exp(logits - logits.max())
+        scaled = logits / TEMPERATURE
+        exp = np.exp(scaled - scaled.max())
         probs = exp / exp.sum()
         return DetectionService._probs_to_result(probs.tolist())
 
     @staticmethod
     def _probs_to_result(probs: list) -> dict:
         pred_id = int(np.argmax(probs))
-        label_map = {0: "GERÇEK", 1: "YAPAY"}
+        confidence = probs[pred_id] * 100
+
+        if pred_id == 1:  # AI
+            if confidence >= 88:
+                label = "KESİNLİKLE YAPAY"
+            elif confidence >= 70:
+                label = "MUHTEMELEN YAPAY"
+            else:
+                label = "BELİRSİZ"
+        else:  # Gerçek
+            if confidence >= 88:
+                label = "KESİNLİKLE GERÇEK"
+            elif confidence >= 70:
+                label = "MUHTEMELEN GERÇEK"
+            else:
+                label = "BELİRSİZ"
+
         return {
             "is_ai_generated": pred_id == 1,
-            "label": label_map[pred_id],
-            "confidence": round(probs[pred_id] * 100, 2),
+            "label": label,
+            "confidence": round(confidence, 2),
             "real_prob": round(probs[0] * 100, 2),
             "fake_prob": round(probs[1] * 100, 2),
         }
