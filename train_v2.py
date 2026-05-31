@@ -12,7 +12,7 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader, random_split
+from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from transformers import CLIPVisionModel, CLIPProcessor
 from PIL import Image
@@ -91,27 +91,29 @@ class TrueFrameV2(nn.Module):
         return self.classifier(combined)
 
 
+TRAIN_AUGMENT = transforms.Compose([
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.ColorJitter(
+        brightness=(0.15, 1.6),   # karanlık → parlak geniş aralık
+        contrast=(0.5, 1.5),
+        saturation=(0.6, 1.4),
+        hue=0.06,
+    ),
+    transforms.RandomRotation(degrees=15),
+    transforms.RandomGrayscale(p=0.04),
+    transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 1.5)),
+])
+
+
 class ImageDataset(Dataset):
-    def __init__(self, real_dir, fake_dir, clip_processor, img_size=224):
+    def __init__(self, samples, clip_processor, img_size=224, augment=False):
         self.processor = clip_processor
+        self.samples = samples
+        self.augment = augment
         self.raw_transform = transforms.Compose([
             transforms.Resize((img_size, img_size)),
             transforms.ToTensor(),
         ])
-
-        exts = {".jpg", ".jpeg", ".png", ".webp"}
-        real_files = [f for f in Path(real_dir).glob("*") if f.suffix.lower() in exts]
-        fake_files = [f for f in Path(fake_dir).glob("*") if f.suffix.lower() in exts]
-
-        # Her iki sınıfı eşitle (az olana göre cap)
-        min_count = min(len(real_files), len(fake_files))
-        np.random.seed(42)
-        real_files = list(np.random.choice(real_files, min_count, replace=False))
-        fake_files = list(np.random.choice(fake_files, min_count, replace=False))
-
-        self.samples = [(f, 0) for f in real_files] + [(f, 1) for f in fake_files]
-        np.random.shuffle(self.samples)
-        print(f"Dataset: {len(real_files)} real, {len(fake_files)} fake")
 
     def __len__(self):
         return len(self.samples)
@@ -120,6 +122,9 @@ class ImageDataset(Dataset):
         path, label = self.samples[idx]
         img = Image.open(path).convert("RGB")
 
+        if self.augment:
+            img = TRAIN_AUGMENT(img)
+
         clip_inputs = self.processor(images=img, return_tensors="pt")
         pixel_values = clip_inputs["pixel_values"].squeeze(0)
         raw = self.raw_transform(img)
@@ -127,17 +132,52 @@ class ImageDataset(Dataset):
         return pixel_values, raw, label
 
 
+def build_samples(real_dir, fake_dir):
+    exts = {".jpg", ".jpeg", ".png", ".webp"}
+    fake_files = [f for f in Path(fake_dir).glob("*") if f.suffix.lower() in exts]
+
+    # Real dosyaları prefix'e göre grupla (kaynak çeşitliliği)
+    real_all = [f for f in Path(real_dir).glob("*") if f.suffix.lower() in exts]
+    groups: dict = {}
+    for f in real_all:
+        prefix = f.stem.rsplit("_", 1)[0] if "_" in f.stem else "other"
+        groups.setdefault(prefix, []).append(f)
+
+    # Her gruptan orantılı örnekle — toplam fake kadar
+    target = len(fake_files)
+    rng = np.random.default_rng(42)
+    real_files = []
+    per_group = max(1, target // len(groups))
+    for grp_files in groups.values():
+        n = min(per_group, len(grp_files))
+        real_files += list(rng.choice(grp_files, n, replace=False))
+    # Eksik kalan varsa rastgele tamamla
+    if len(real_files) < target:
+        remaining = [f for f in real_all if f not in set(real_files)]
+        extra = min(target - len(real_files), len(remaining))
+        real_files += list(rng.choice(remaining, extra, replace=False))
+    real_files = real_files[:target]
+
+    samples = [(f, 0) for f in real_files] + [(f, 1) for f in fake_files]
+    rng.shuffle(samples)
+    print(f"Dataset: {len(real_files)} real ({len(groups)} kaynak), {len(fake_files)} fake — toplam {len(samples)}")
+    return samples
+
+
 def train():
     print(f"Cihaz: {DEVICE}")
     print(f"CLIP modeli yükleniyor: {CLIP_MODEL}")
 
     processor = CLIPProcessor.from_pretrained(CLIP_MODEL)
-    dataset = ImageDataset(REAL_DIR, FAKE_DIR, processor)
+    all_samples = build_samples(REAL_DIR, FAKE_DIR)
 
-    val_size = int(len(dataset) * VAL_SPLIT)
-    train_size = len(dataset) - val_size
-    train_ds, val_ds = random_split(dataset, [train_size, val_size],
-                                     generator=torch.Generator().manual_seed(42))
+    val_size = int(len(all_samples) * VAL_SPLIT)
+    val_samples = all_samples[:val_size]
+    train_samples = all_samples[val_size:]
+
+    train_ds = ImageDataset(train_samples, processor, augment=True)
+    val_ds = ImageDataset(val_samples, processor, augment=False)
+    print(f"Train: {len(train_ds)}, Val: {len(val_ds)}")
 
     train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
     val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False, num_workers=2)
@@ -208,8 +248,8 @@ def train():
                 all_preds.extend(preds.cpu().numpy())
                 all_labels.extend(labels.cpu().numpy())
 
-        train_acc = train_correct / train_size
-        val_acc = val_correct / val_size
+        train_acc = train_correct / len(train_ds)
+        val_acc = val_correct / len(val_ds)
         print(f"Epoch {epoch+1}/{EPOCHS} | "
               f"Train loss: {train_loss/len(train_loader):.4f} acc: {train_acc:.4f} | "
               f"Val loss: {val_loss/len(val_loader):.4f} acc: {val_acc:.4f}")

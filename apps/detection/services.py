@@ -27,7 +27,8 @@ FALLBACK_MODEL = "dima806/ai_vs_real_image_detection"
 MANIP_MODEL = "dima806/deepfake_vs_real_image_detection"
 
 IMG_SIZE = 224
-TEMPERATURE = 1.8
+TEMPERATURE = 2.0
+REAL_BIAS = 1.2
 RAW_TRANSFORM = transforms.Compose([
     transforms.Resize((IMG_SIZE, IMG_SIZE)),
     transforms.ToTensor(),
@@ -153,7 +154,9 @@ class DetectionService:
 
     @staticmethod
     def _logits_to_result(logits: np.ndarray) -> dict:
-        scaled = logits / TEMPERATURE
+        adjusted = logits.copy().astype(float)
+        adjusted[1] -= REAL_BIAS   # sahte logit'i hafif düşür
+        scaled = adjusted / TEMPERATURE
         exp = np.exp(scaled - scaled.max())
         probs = exp / exp.sum()
         return DetectionService._probs_to_result(probs.tolist())
@@ -162,19 +165,19 @@ class DetectionService:
     def _probs_to_result(probs: list) -> dict:
         pred_id = int(np.argmax(probs))
         confidence = probs[pred_id] * 100
-        is_ai = pred_id == 1
+        is_ai = probs[1] > 0.62   # %50 değil, %62+ gerektir
 
         if is_ai:
-            if confidence >= 88:
+            if confidence >= 93:
                 label = "KESİNLİKLE YAPAY"
-            elif confidence >= 70:
+            elif confidence >= 75:
                 label = "MUHTEMELEN YAPAY"
             else:
                 label = "BELİRSİZ"
         else:
-            if confidence >= 88:
+            if confidence >= 85:
                 label = "KESİNLİKLE GERÇEK"
-            elif confidence >= 70:
+            elif confidence >= 68:
                 label = "MUHTEMELEN GERÇEK"
             else:
                 label = "BELİRSİZ"
@@ -203,7 +206,7 @@ class DetectionService:
             return base
 
         # Gerçek görünüyor ama manipülasyon şüphesi var
-        if not is_ai and manip_score >= 0.60:
+        if not is_ai and manip_score >= 0.78:
             confidence = round(manip_score * 100, 2)
             return {
                 "is_ai_generated": False,
