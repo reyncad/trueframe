@@ -1,0 +1,178 @@
+﻿@{
+    ViewData["Title"] = "Kayıtlarım";
+}
+
+<section class="history-page">
+
+    <div class="container py-5">
+
+        <div class="history-header mb-5">
+
+            <div>
+                <span class="section-label">Kayıtlarım</span>
+
+                <h1 class="section-title">
+                    Geçmiş analiz kayıtlarım
+                </h1>
+
+                <p class="section-desc text-start ms-0">
+                    Kayıtlı kullanıcılar daha önce yaptıkları analizleri tarih ve analiz türüne göre filtreleyebilir.
+                </p>
+            </div>
+
+            <a asp-controller="Analysis" asp-action="Upload" class="btn btn-primary rounded-4">
+                Yeni Analiz Yap
+            </a>
+
+        </div>
+
+        <div class="history-filter-card mb-4">
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-md-4">
+                    <label class="form-label">Analiz Türü</label>
+
+                    <select class="form-select rounded-4">
+                        <option>Tümü</option>
+                        <option>Real / Fake Analizi</option>
+                        <option>Görsel Kalite Analizi</option>
+                        <option>İki Analiz Birlikte</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Başlangıç Tarihi</label>
+
+                    <input type="date" class="form-control rounded-4" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Bitiş Tarihi</label>
+
+                    <input type="date" class="form-control rounded-4" />
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-lg-4">
+                <div class="history-record-card">
+
+                    <div class="record-top">
+                        <span class="record-type ai">Real/Fake</span>
+                        <small>13 May 2026</small>
+                    </div>
+
+                    <h4>AI Detection Result</h4>
+
+                    <p>
+                        Görselde yapay üretime benzer ışık ve doku geçişleri tespit edildi.
+                    </p>
+
+                    <div class="record-metrics">
+                        <div>
+                            <span>AI</span>
+                            <strong>72%</strong>
+                        </div>
+
+                        <div>
+                            <span>Real</span>
+                            <strong>28%</strong>
+                        </div>
+                    </div>
+
+                    <a asp-controller="Analysis"
+                       asp-action="Details"
+                       class="btn btn-outline-primary rounded-4 w-100 mt-4">
+                        Detay Gör
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="history-record-card">
+
+                    <div class="record-top">
+                        <span class="record-type quality">Quality</span>
+                        <small>10 May 2026</small>
+                    </div>
+
+                    <h4>Image Quality Analysis</h4>
+
+                    <p>
+                        Görselin netlik ve kontrast seviyesi yüksek, kullanılabilirlik skoru iyi.
+                    </p>
+
+                    <div class="record-metrics">
+                        <div>
+                            <span>Quality</span>
+                            <strong>91</strong>
+                        </div>
+
+                        <div>
+                            <span>Noise</span>
+                            <strong>12</strong>
+                        </div>
+                    </div>
+
+                    <a asp-controller="Analysis"
+                       asp-action="Details"
+                       class="btn btn-outline-primary rounded-4 w-100 mt-4">
+                        Detay Gör
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="history-record-card">
+
+                    <div class="record-top">
+                        <span class="record-type both">Both</span>
+                        <small>08 May 2026</small>
+                    </div>
+
+                    <h4>Full Image Report</h4>
+
+                    <p>
+                        Real/Fake ve kalite analizi birlikte tamamlandı. Sonuçlar tek raporda birleştirildi.
+                    </p>
+
+                    <div class="record-metrics">
+                        <div>
+                            <span>AI</span>
+                            <strong>41%</strong>
+                        </div>
+
+                        <div>
+                            <span>Quality</span>
+                            <strong>86</strong>
+                        </div>
+                    </div>
+                    <a asp-controller="Analysis"
+                       asp-action="Details"
+                       class="btn btn-outline-primary rounded-4 w-100 mt-4">
+                        Detay Gör
+                    </a>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="empty-history-box mt-5">
+
+            <h5>Bilgilendirme</h5>
+
+            <p>
+                Şu anda bu kayıtlar demo amaçlıdır. Veritabanı entegrasyonu yapıldığında kayıtlı kullanıcının gerçek analiz geçmişi burada listelenecektir.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>

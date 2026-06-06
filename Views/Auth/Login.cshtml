@@ -1,0 +1,78 @@
+﻿@{
+    ViewData["Title"] = "Giriş Yap";
+}
+
+<div class="auth-page">
+
+    <div class="auth-card shadow-lg rounded-5 p-5">
+
+        <div class="text-center mb-4">
+            <span class="tf-badge">
+                True Frame
+            </span>
+        </div>
+
+        <h2 class="fw-bold text-center mb-2">
+            Giriş Yap
+        </h2>
+
+     
+
+        <p class="text-muted text-center mb-4">
+            Geçmiş analizlerine erişmek ve sınırsız analiz hakkı kullanmak için giriş yap.
+        </p>
+
+        @if (TempData["AccessError"] != null)
+        {
+            <div class="alert alert-warning rounded-4">
+                @TempData["AccessError"]
+            </div>
+        }
+
+        <form asp-controller="Auth" asp-action="Login" method="post">
+
+            <div class="mb-3">
+                <label class="form-label">E-posta</label>
+                <input type="email"
+                       name="email"
+                       class="form-control form-control-lg rounded-4"
+                       placeholder="ornek@mail.com"
+                       required />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Şifre</label>
+                <input type="password"
+                       name="password"
+                       class="form-control form-control-lg rounded-4"
+                       placeholder="Şifrenizi giriniz"
+                       required />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 btn-lg rounded-4">
+                Giriş Yap
+            </button>
+
+        </form>
+
+        <div class="text-center mt-4">
+            <p class="text-muted mb-1">
+                Hesabın yok mu?
+            </p>
+
+            <a asp-controller="Auth" asp-action="Register" class="text-decoration-none fw-bold">
+                Kayıt ol
+            </a>
+        </div>
+
+        <hr class="my-4" />
+
+        <div class="text-center">
+            <a asp-controller="Auth" asp-action="Guest" class="text-decoration-none text-muted">
+                Misafir olarak devam et
+            </a>
+        </div>
+
+    </div>
+
+</div>

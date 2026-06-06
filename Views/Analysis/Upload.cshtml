@@ -1,0 +1,358 @@
+﻿@{
+    ViewData["Title"] = "Analiz Yap";
+}
+
+<section class="upload-page">
+
+    <div class="container py-5">
+
+        <div class="text-center mb-5">
+            <span class="section-label">Görsel Analizi</span>
+
+            <h1 class="section-title">
+                Görselini yükle ve analiz başlat
+            </h1>
+
+            <p class="section-desc">
+                Real/Fake analizi ve görsel kalite değerlendirmesi için JPG, PNG veya WEBP formatında bir görsel yükle.
+            </p>
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger rounded-4 mb-4">
+                @ViewBag.Error
+            </div>
+        }
+
+        <div class="row g-4 align-items-start">
+
+            <div class="col-lg-7">
+
+                <div class="upload-card">
+
+                    @if (Context.Session.GetString("UserType") != null)
+                    {
+                        <div class="user-status-box mb-4">
+
+                            @if (Context.Session.GetString("UserType") == "Guest")
+                            {
+                                <div>
+                                    <strong>Misafir Kullanıcı</strong>
+                                    <p>
+                                        Kalan analiz hakkı:
+                                        @Context.Session.GetString("GuestLimit")
+                                    </p>
+                                </div>
+
+                                <span class="user-pill guest">
+                                    Guest
+                                </span>
+                            }
+                            else
+                            {
+                                <div>
+                                    <strong>Kayıtlı Kullanıcı</strong>
+                                    <p>
+                                        Sınırsız analiz ve geçmiş kayıt erişimi aktif.
+                                    </p>
+                                </div>
+
+                                <span class="user-pill registered">
+                                    Registered
+                                </span>
+                            }
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="user-status-box mb-4">
+
+                            <div>
+                                <strong>Oturum açılmadı</strong>
+
+                                <p>
+                                    Analiz yapabilirsin, ancak geçmiş kayıtlar için giriş yapman gerekir.
+                                </p>
+                            </div>
+
+                            <a asp-controller="Auth"
+                               asp-action="Login"
+                               class="btn btn-outline-primary rounded-4">
+                                Giriş Yap
+                            </a>
+
+                        </div>
+                    }
+
+                    <form asp-controller="Analysis"
+                          asp-action="Result"
+                          method="post"
+                          enctype="multipart/form-data"
+                          onsubmit="return validateAndShowLoading()">
+
+                        <label class="upload-drop-area" for="imageFile">
+
+                            <input type="file"
+                                   id="imageFile"
+                                   name="imageFile"
+                                   accept=".jpg,.jpeg,.png,.webp"
+                                   onchange="previewImage(event)"
+                                   hidden />
+
+                            <div class="upload-icon">
+                                +
+                            </div>
+
+                            <h4>
+                                Görsel seç veya buraya sürükle
+                            </h4>
+
+                            <p>
+                                Desteklenen formatlar:
+                                JPG, PNG, WEBP
+                            </p>
+
+                            <small>
+                                Önerilen maksimum dosya boyutu:
+                                5 MB
+                            </small>
+
+                        </label>
+
+                        <div class="preview-wrapper mt-4"
+                             id="previewWrapper"
+                             style="display:none;">
+
+                            <div class="preview-header">
+
+                                <strong>
+                                    Görsel Ön İzleme
+                                </strong>
+
+                                <span id="fileName">
+                                    image
+                                </span>
+
+                            </div>
+
+                            <img id="preview"
+                                 src=""
+                                 class="preview-image" />
+
+                        </div>
+
+                        <div class="analysis-options mt-4">
+
+                            <h5>
+                                Analiz Türü Seç
+                            </h5>
+
+                            <p>
+                                İstersen tek analiz seçebilir veya iki analizi birlikte çalıştırabilirsin.
+                            </p>
+
+                            <div class="row g-3">
+
+                                <div class="col-md-6">
+
+                                    <label class="analysis-option">
+
+                                        <input type="checkbox"
+                                               name="realFakeSelected"
+                                               value="true" />
+
+                                        <div>
+
+                                            <strong>
+                                                Real / Fake Analizi
+                                            </strong>
+
+                                            <span>
+                                                AI üretim olasılığı ve güven oranı
+                                            </span>
+
+                                        </div>
+
+                                    </label>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label class="analysis-option">
+
+                                        <input type="checkbox"
+                                               name="qualitySelected"
+                                               value="true" />
+
+                                        <div>
+
+                                            <strong>
+                                                Görsel Kalite Analizi
+                                            </strong>
+
+                                            <span>
+                                                Netlik, kontrast, gürültü ve kalite skoru
+                                            </span>
+
+                                        </div>
+
+                                    </label>
+
+                                </div>
+
+                            </div>
+
+                            <div class="default-info mt-3">
+                                Hiçbir seçenek işaretlenmezse iki analiz birlikte çalıştırılır.
+                            </div>
+
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-primary btn-lg rounded-4 w-100 mt-4">
+
+                            Analizi Başlat
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-5">
+
+                <div class="side-info-card">
+
+                    <h4>
+                        Bu ekranda ne yapılır?
+                    </h4>
+
+                    <ul>
+                        <li>Görsel sisteme yüklenir.</li>
+                        <li>Yüklenen görsel ön izleme olarak gösterilir.</li>
+                        <li>Real/Fake ve kalite analizi seçilir.</li>
+                        <li>Sonuçlar tek bir ekranda kullanıcıya sunulur.</li>
+                    </ul>
+
+                    <div class="side-warning">
+
+                        Bu ekran şu anda frontend prototipi olarak çalışmaktadır.
+                        Gerçek AI modeli ve veritabanı entegrasyonu sonraki aşamada sisteme bağlanacaktır.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+<div id="customToast" class="custom-toast"></div>
+<div id="loadingOverlay"
+     class="loading-overlay"
+     style="display:none;">
+
+    <div class="loading-card">
+
+        <div class="spinner-border text-primary mb-3"
+             role="status">
+        </div>
+
+        <h4>
+            Analiz ediliyor...
+        </h4>
+
+        <p>
+            Görselin Real/Fake olasılığı ve kalite ölçütleri değerlendiriliyor.
+        </p>
+
+        <div class="progress mt-3">
+
+            <div class="progress-bar
+                        progress-bar-striped
+                        progress-bar-animated"
+                 style="width:100%">
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    const dropArea = document.querySelector('.upload-drop-area');
+    const fileInput = document.getElementById('imageFile');
+
+    dropArea.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        dropArea.classList.add('drag-active');
+    });
+
+    dropArea.addEventListener('dragleave', function () {
+        dropArea.classList.remove('drag-active');
+    });
+
+    dropArea.addEventListener('drop', function (e) {
+        e.preventDefault();
+        dropArea.classList.remove('drag-active');
+
+        const files = e.dataTransfer.files;
+
+        if (files.length > 0) {
+            fileInput.files = files;
+            previewSelectedFile(files[0]);
+            showToast("Görsel başarıyla seçildi.", "success");
+        }
+    });
+
+    function previewImage(event) {
+        const file = event.target.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        previewSelectedFile(file);
+        showToast("Görsel başarıyla seçildi.", "success");
+    }
+
+    function previewSelectedFile(file) {
+        const preview = document.getElementById('preview');
+        const wrapper = document.getElementById('previewWrapper');
+        const fileName = document.getElementById('fileName');
+
+        preview.src = URL.createObjectURL(file);
+        fileName.innerText = file.name;
+        wrapper.style.display = 'block';
+    }
+
+    function validateAndShowLoading() {
+        if (!fileInput.files || fileInput.files.length === 0) {
+            showToast("Lütfen analiz için bir görsel seçiniz.", "error");
+            return false;
+        }
+
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        return true;
+    }
+
+    function showToast(message, type) {
+        const toast = document.getElementById('customToast');
+
+        toast.innerText = message;
+        toast.className = 'custom-toast show ' + type;
+
+        setTimeout(function () {
+            toast.className = 'custom-toast';
+        }, 3000);
+    }
+</script>
