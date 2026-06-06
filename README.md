@@ -68,8 +68,18 @@ python evaluate.py --image path/to/photo.jpg
 
 ## Dataset
 
-- **Real:** CelebA-HQ (256×256) — high-quality celebrity faces
-- **Fake:** AI-generated faces dataset — Stable Diffusion / DALL-E generated faces
+Training data was compiled from multiple sources totaling 160,000+ images:
+
+| Source | Type | Images |
+|--------|------|--------|
+| CelebA-HQ | Real | ~80,000 |
+| 50K Celebrity Faces | Real | ~50,000 |
+| AI Detection Dataset (Kaggle) | Fake | ~1,000 |
+| StyleGAN / StyleGAN3 | Fake | ~20,000 |
+| Unbiased Tiny GenImage | Fake | ~10,000 |
+| GRAVEX-200K | Fake | ~12,000 |
+
+All sources are publicly available on Kaggle and HuggingFace.
 
 ## Results
 
