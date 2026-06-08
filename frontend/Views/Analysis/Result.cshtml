@@ -1,0 +1,575 @@
+@model TrueFrameUI.Models.AnalysisViewModel
+@{
+    ViewData["Title"] = "Analiz Sonucu";
+}
+
+<section class="result-page">
+    <div class="container py-5">
+
+        <div class="result-header mb-5">
+            <div>
+                <span class="section-label">Analiz Sonucu</span>
+                <h1 class="section-title">Analiz sonucu hazır</h1>
+                <p class="section-desc text-start ms-0">
+                    Yüklenen görsel için seçilen analiz sonuçları aşağıda özetlenmiştir.
+                </p>
+            </div>
+            <a asp-controller="Analysis" asp-action="Upload" class="btn btn-outline-primary rounded-4">
+                Yeni Analiz Yap
+            </a>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
+
+        <div class="row g-4">
+
+            
+@* Sol: Görsel  *@
+            <div class="col-lg-5">
+                <div class="result-image-card">
+                    <div class="result-card-title">
+                        <strong>Yüklenen Görsel</strong>
+                        <span>Preview</span>
+                    </div>
+                    <div class="heatmap-image-wrapper">
+                        <img src="@Model.ImagePath" class="result-image" />
+                        @* FIX: Statik sahte zone'lar kaldırıldı.
+                           Gerçek analiz rozetleri: blur tipi + eğiklik uyarısı *@
+                        @if (Model.QualitySelected)
+                        {
+                            @if (!string.IsNullOrEmpty(Model.BlurType) && Model.BlurType != "sharp")
+                            {
+                                <div class="image-badge badge-blur">@Model.BlurLabel</div>
+                            }
+                            @if (Model.TiltAngle.HasValue && Math.Abs(Model.TiltAngle.Value) >= 1.5)
+                            {
+                                <div class="image-badge badge-tilt">⚠ @Model.TiltAngle.Value.ToString("+0.0;-0.0")° eğik</div>
+                            }
+                            @if (Model.HighlightClip > 5)
+                            {
+                                <div class="image-badge badge-highlight">⬆ Highlight kırpılma %@Model.HighlightClip.ToString("F0")</div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                @if (Model.QualitySelected && Model.ImgWidth > 0)
+                {
+                    <div class="result-image-card mt-4">
+                        <div class="result-card-title"><strong>Görsel Bilgisi</strong></div>
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                <tr><td class="text-muted">Çözünürlük</td><td>@Model.ImgWidth x @Model.ImgHeight px</td></tr>
+                                <tr><td class="text-muted">Megapiksel</td><td>@Model.Megapixels.ToString("F2") MP</td></tr>
+                                @if (!string.IsNullOrEmpty(Model.ImgFormat))
+                                {
+                                    <tr><td class="text-muted">Format</td><td>@Model.ImgFormat</td></tr>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.ColorMode))
+                                {
+                                    <tr><td class="text-muted">Renk Modu</td><td>@Model.ColorMode</td></tr>
+                                }
+                                @if (Model.Dpi.HasValue)
+                                {
+                                    <tr><td class="text-muted">DPI</td><td>@Model.Dpi.Value.ToString("F0")</td></tr>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.ExifDatetime))
+                                {
+                                    <tr><td class="text-muted">Çekim Tarihi</td><td>@Model.ExifDatetime</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+
+            
+@* Sağ: Analiz Sonuçları  *@
+            <div class="col-lg-7">
+                <div class="result-summary-card">
+
+                    <div class="status-success-box mb-4">
+                        <div>
+                            <strong>@Model.StatusMessage</strong>
+                        </div>
+                        <span>Completed</span>
+                    </div>
+
+                    
+@* Real / Fake Analizi  *@
+                    @if (Model.RealFakeSelected)
+                    {
+                        <div class="result-section mb-4">
+                            <div class="result-section-header">
+                                <div>
+                                    <h4>Real / Fake Analizi</h4>
+                                    <p>@Model.Label</p>
+                                </div>
+                                <div class="score-badge">
+                                    @Model.ConfidenceScore.ToString("F1")%
+                                </div>
+                            </div>
+
+                            @* MANİPÜLASYON UYARISI *@
+                            @if (Model.IsManipulated)
+                            {
+                                <div class="alert alert-warning rounded-4 mt-3 d-flex align-items-center gap-2">
+                                    <strong>⚠ Manipülasyon Tespit Edildi</strong>
+                                    <span class="ms-auto badge bg-warning text-dark">
+                                        Skor: @Model.ManipScore.ToString("F1")%
+                                    </span>
+                                </div>
+                            }
+
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <div class="metric-card danger-metric">
+                                        <p>AI Olasılığı</p>
+                                        <h2>@Model.AiProbability.ToString("F1")%</h2>
+                                        <div class="progress">
+                                            <div class="progress-bar" style="width:@Model.AiProbability.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="metric-card success-metric">
+                                        <p>Gerçek Olasılığı</p>
+                                        <h2>@Model.RealProbability.ToString("F1")%</h2>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" style="width:@Model.RealProbability.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @if (Model.ManipScore > 0 && !Model.IsManipulated)
+                                {
+                                    <div class="col-12">
+                                        <div class="metric-card" style="border-left:3px solid #f59e0b">
+                                            <p style="color:#92400e">Manipülasyon Skoru</p>
+                                            <h2 style="color:#d97706">@Model.ManipScore.ToString("F1")%</h2>
+                                            <div class="progress">
+                                                <div class="progress-bar bg-warning" style="width:@Model.ManipScore.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="chart-card mt-4">
+                                <h5>AI / Gerçek Dağılım Grafiği</h5>
+                                <div class="chart-wrapper">
+                                    <canvas id="resultChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    
+@* Kalite Analizi  *@
+                    @if (Model.QualitySelected)
+                    {
+                        <div class="result-section">
+
+                            
+@* Skor + Verdict  *@
+                            <div class="result-section-header">
+                                <div>
+                                    <h4>Görsel Kalite Analizi</h4>
+                                    @if (!string.IsNullOrEmpty(Model.ProfileLabel))
+                                    {
+                                        <p class="text-muted small">Profil: @Model.ProfileLabel — @Model.ProfilePass/@Model.ProfileTotal kontrol geçildi</p>
+                                    }
+                                </div>
+                                <div class="quality-score-circle">@Model.QualityScore.ToString("F0")</div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.Verdict))
+                            {
+                                <div class="alert alert-light border rounded-4 mt-3 mb-3" style="font-size:0.9rem">
+                                    @Model.Verdict
+                                </div>
+                            }
+
+                            
+@* 6 Boyutlu Radar  *@
+                            <div class="chart-card mt-3 mb-4">
+                                <h5>6 Boyutlu Kalite Profili</h5>
+                                <div class="chart-wrapper" style="max-width:300px;margin:auto">
+                                    <canvas id="radarChart"></canvas>
+                                </div>
+                            </div>
+
+                            
+@* 6D Grid  *@
+                            <div class="quality-metrics-grid mt-2">
+                                <div class="quality-metric"><span>Keskinlik</span><strong>@Model.Sharpness.ToString("F1")</strong></div>
+                                <div class="quality-metric"><span>Gürültü</span><strong>@Model.Noise.ToString("F1")</strong></div>
+                                <div class="quality-metric"><span>Pozlama</span><strong>@Model.Exposure.ToString("F1")</strong></div>
+                                <div class="quality-metric"><span>Renk</span><strong>@Model.Color.ToString("F1")</strong></div>
+                                <div class="quality-metric"><span>Estetik</span><strong>@Model.Aesthetics.ToString("F1")</strong></div>
+                                <div class="quality-metric"><span>Teknik</span><strong>@Model.Technical.ToString("F1")</strong></div>
+                            </div>
+
+                            
+@* Pozlama  *@
+                            @if (!string.IsNullOrEmpty(Model.ExposureLabel))
+                            {
+                                <h5 class="mt-4 mb-2">Pozlama Analizi</h5>
+                                <div class="quality-metrics-grid">
+                                    <div class="quality-metric"><span>Pozlama</span><strong>@Model.ExposureLabel</strong></div>
+                                    <div class="quality-metric"><span>Highlight Kırp.</span><strong>@Model.HighlightClip.ToString("F1")%</strong></div>
+                                    <div class="quality-metric"><span>Shadow Kırp.</span><strong>@Model.ShadowClip.ToString("F1")%</strong></div>
+                                    <div class="quality-metric"><span>Dinamik Aralık</span><strong>@Model.DynamicRange.ToString("F1")/100</strong></div>
+                                    <div class="quality-metric"><span>Ort. Parlaklık</span><strong>@Model.AvgBrightness.ToString("F0") <small class="text-muted">/255</small></strong></div>
+                                </div>
+                            }
+
+                            
+@* Renk & Gürültü  *@
+                            @if (!string.IsNullOrEmpty(Model.ColorCast))
+                            {
+                                <h5 class="mt-4 mb-2">Renk & Gürültü</h5>
+                                <div class="quality-metrics-grid">
+                                    <div class="quality-metric"><span>Renk Cast</span><strong>@Model.ColorCast</strong></div>
+                                    @if (Model.ColorTemperature.HasValue)
+                                    {
+                                        <div class="quality-metric"><span>Renk Sıcaklığı</span><strong>@Model.ColorTemperature.Value.ToString("F0")K</strong></div>
+                                    }
+                                    @if (Model.ColorTint.HasValue)
+                                    {
+                                        <div class="quality-metric"><span>Renk Tonu</span><strong>@Model.ColorTint.Value.ToString("F2")</strong></div>
+                                    }
+                                    @if (Model.Saturation.HasValue)
+                                    {
+                                        <div class="quality-metric"><span>Doygunluk</span><strong>@Model.Saturation.Value.ToString("F1")%</strong></div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(Model.ColorNoise))
+                                    {
+                                        <div class="quality-metric"><span>Renk Gürültüsü</span><strong>@Model.ColorNoise</strong></div>
+                                    }
+                                </div>
+                            }
+
+                            
+@* Geometri & Blur  *@
+                            @if (!string.IsNullOrEmpty(Model.BlurType))
+                            {
+                                <h5 class="mt-4 mb-2">Geometri & Blur Analizi</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="metric-card text-center py-3">
+                                            <small class="text-muted d-block">BLUR TİPİ</small>
+                                            <strong class="text-primary">@Model.BlurLabel</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="metric-card text-center py-3">
+                                            <small class="text-muted d-block">HORİZON EĞİKLİĞİ</small>
+                                            @if (Model.TiltAngle.HasValue)
+                                            {
+                                                <strong class="@(Math.Abs(Model.TiltAngle.Value) > 3 ? "text-danger" : "text-success")">
+                                                    @Model.TiltAngle.Value.ToString("+0.0;-0.0")°
+                                                </strong>
+                                                <small class="text-muted d-block">@Model.TiltLabel</small>
+                                            }
+                                            else
+                                            {
+                                                <strong>N/A</strong>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="metric-card text-center py-3">
+                                            <small class="text-muted d-block">MOIRE PATTERN</small>
+                                            <strong class="@(Model.MoireScore > 35 ? "text-danger" : "text-success")">@Model.MoireLabel</strong>
+                                            <small class="text-muted d-block">Skor: @Model.MoireScore.ToString("F0")/100</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            
+@* IQA Metrik Tablosu  *@
+                            @if (Model.IqaMetrics.Count > 0)
+                            {
+                                <h5 class="mt-4 mb-2">IQA Metrik Skorları</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-sm rounded-4 overflow-hidden">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Metrik</th>
+                                                <th>Skor</th>
+                                                <th>Kalite</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var m in Model.IqaMetrics)
+                                            {
+                                                string qualityClass = "text-muted";
+                                                string qualityLabel = "—";
+                                                if (!string.IsNullOrEmpty(m.Error))
+                                                {
+                                                    qualityLabel = "Hata";
+                                                    qualityClass = "text-danger";
+                                                }
+                                                else if (m.Score.HasValue)
+                                                {
+                                                    bool good = m.Direction == "higher"
+                                                        ? m.Score.Value >= m.GoodMin
+                                                        : m.Score.Value <= m.GoodMax;
+                                                    qualityLabel = good ? "İyi" : "Zayıf";
+                                                    qualityClass = good ? "text-success" : "text-warning";
+                                                }
+                                                <tr>
+                                                    <td><strong>@m.Label</strong></td>
+                                                    <td>@(m.Score.HasValue ? m.Score.Value.ToString("F4") : "—")</td>
+                                                    <td class="@qualityClass">@qualityLabel</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+
+                            
+@* Profil Kontrol Listesi  *@
+                            @if (Model.Checks.Count > 0)
+                            {
+                                <h5 class="mt-4 mb-2">@Model.ProfileLabel Kontrol Listesi</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-sm rounded-4 overflow-hidden">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th></th>
+                                                <th>Kontrol</th>
+                                                <th>Değer</th>
+                                                <th>Gerekli</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var c in Model.Checks)
+                                            {
+                                                var passClass = c.Passed == true ? "text-success"
+                                                              : c.Passed == false ? "text-danger"
+                                                              : "text-muted";
+                                                var passIcon  = c.Passed == true ? "✓"
+                                                              : c.Passed == false ? "✗"
+                                                              : "—";
+                                                <tr>
+                                                    <td class="@passClass">@passIcon</td>
+                                                    <td>@c.Name</td>
+                                                    <td class="@passClass">@c.Value</td>
+                                                    <td class="text-muted">@c.Needed</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+        @* PDF butonu  *@
+        <div class="text-center mt-4">
+            <button id="pdfBtn" onclick="exportPdf()" class="btn btn-outline-secondary rounded-4 px-4">
+                PDF Olarak İndir
+            </button>
+        </div>
+
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+@if (Model.RealFakeSelected)
+{
+    <script>
+        const ctx = document.getElementById('resultChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['AI Olasılığı', 'Gerçek Olasılığı'],
+                    datasets: [{
+                        data: [@Model.AiProbability.ToString("F2", System.Globalization.CultureInfo.InvariantCulture), @Model.RealProbability.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)],
+                        backgroundColor: ['#2563eb', '#16a34a'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '68%', plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+    </script>
+}
+
+@if (Model.QualitySelected)
+{
+    <script>
+        const rctx = document.getElementById('radarChart');
+        if (rctx) {
+            new Chart(rctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Keskinlik', 'Gürültü', 'Pozlama', 'Renk', 'Estetik', 'Teknik'],
+                    datasets: [{
+                        label: 'Kalite Profili',
+                        data: [
+                            @Model.Sharpness.ToString("F1", System.Globalization.CultureInfo.InvariantCulture),
+                            @Model.Noise.ToString("F1", System.Globalization.CultureInfo.InvariantCulture),
+                            @Model.Exposure.ToString("F1", System.Globalization.CultureInfo.InvariantCulture),
+                            @Model.Color.ToString("F1", System.Globalization.CultureInfo.InvariantCulture),
+                            @Model.Aesthetics.ToString("F1", System.Globalization.CultureInfo.InvariantCulture),
+                            @Model.Technical.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)
+                        ],
+                        backgroundColor: 'rgba(37,99,235,0.15)',
+                        borderColor: '#2563eb',
+                        pointBackgroundColor: '#2563eb'
+                    }]
+                },
+                options: {
+                    scales: { r: { min: 0, max: 100, ticks: { display: false } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    </script>
+}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+async function exportPdf() {
+    const btn = document.getElementById('pdfBtn');
+    btn.disabled = true;
+    btn.textContent = 'Hazırlanıyor...';
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const W = 210, M = 16;
+    let y = 20;
+
+    // ── Header
+    doc.setFillColor(37, 99, 235);
+    doc.rect(0, 0, W, 14, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+    doc.text('TrueFrame — Analiz Raporu', M, 9.5);
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(200, 220, 255);
+    const now = new Date().toLocaleDateString('tr-TR', {year:'numeric',month:'long',day:'numeric'});
+    doc.text(now, W - M, 9.5, { align: 'right' });
+
+    y = 22;
+
+    function sectionBox(color, h) {
+        doc.setFillColor(...color);
+        doc.roundedRect(M, y, W - M * 2, h, 3, 3, 'F');
+    }
+    function heading(txt) {
+        doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(15,23,42);
+        doc.text(txt, M + 4, y + 7); y += 10;
+    }
+    function line(txt) {
+        doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105);
+        doc.text(txt, M + 4, y); y += 6;
+    }
+
+    @if (Model.RealFakeSelected && Model.AiProbability > 0)
+    {
+        <text>
+        sectionBox([239,246,255], 34);
+        heading('Real / Fake Analizi');
+        line('Tespit: @Model.Label   |   Güven: @Model.ConfidenceScore.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%');
+        line('AI Olasılığı: @Model.AiProbability.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%   |   Gerçek Olasılığı: @Model.RealProbability.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%');
+        @if (Model.IsManipulated) { <text>line('⚠ Manüpläsyon Tespit Edildi — Skor: @Model.ManipScore.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%');</text> }
+        y += 6;
+        </text>
+    }
+
+    @if (Model.QualitySelected && Model.QualityScore > 0)
+    {
+        <text>
+        if (y > 220) { doc.addPage(); y = 20; }
+        sectionBox([240,253,244], 52);
+        heading('Görsel Kalite Analizi');
+        line('Genel Skor: @Model.QualityScore.ToString("F0", System.Globalization.CultureInfo.InvariantCulture) / 100');
+        @if (!string.IsNullOrEmpty(Model.ProfileLabel))
+        {
+            <text>line('Profil: @Model.ProfileLabel — @Model.ProfilePass/@Model.ProfileTotal kontrol geçildi');</text>
+        }
+        // 6D grid — 2 sütun
+        const dims6 = [
+            'Keskinlik: @Model.Sharpness.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)',
+            'Gürültü: @Model.Noise.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)',
+            'Pozlama: @Model.Exposure.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)',
+            'Renk: @Model.Color.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)',
+            'Estetik: @Model.Aesthetics.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)',
+            'Teknik: @Model.Technical.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)'
+        ];
+        doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105);
+        dims6.forEach((d,i)=>{ doc.text(d, i>2 ? M+4+90 : M+4, y+(i%3)*6); });
+        y += 22;
+        </text>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.Verdict))
+    {
+        <text>
+        if (y > 250) { doc.addPage(); y = 20; }
+        doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.setTextColor(100,116,139);
+        const vlines = doc.splitTextToSize('@Html.Raw(Model.Verdict?.Replace("'","\\'").Replace("\n"," ").Replace("\"","\\\""))', W-M*2-4);
+        doc.text(vlines, M+2, y); y += vlines.length*5 + 4;
+        </text>
+    }
+
+    @if (Model.IqaMetrics.Count > 0)
+    {
+        <text>
+        if (y > 220) { doc.addPage(); y = 20; }
+        doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(15,23,42);
+        doc.text('IQA Metrik Skorları', M, y); y += 6;
+        doc.setFillColor(226,232,240); doc.rect(M, y, W-M*2, 6, 'F');
+        doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(71,85,105);
+        doc.text('Metrik', M+2, y+4);
+        doc.text('Skor', M+80, y+4);
+        doc.text('Kalite', M+120, y+4);
+        y += 7;
+        </text>
+        @foreach (var m in Model.IqaMetrics)
+        {
+            bool good = m.Direction == "higher" ? (m.Score ?? 0) >= m.GoodMin : (m.Score ?? 0) <= m.GoodMax;
+            string ql  = string.IsNullOrEmpty(m.Error) ? (good ? "İyi" : "Zayıf") : "Hata";
+            int[] qRgb = string.IsNullOrEmpty(m.Error) ? (good ? new[]{22,163,74} : new[]{202,138,4}) : new[]{220,38,38};
+            string sc  = m.Score.HasValue ? m.Score.Value.ToString("F4", System.Globalization.CultureInfo.InvariantCulture) : "-";
+            <text>
+            if (y > 270) { doc.addPage(); y = 20; }
+            doc.setFont('helvetica','normal'); doc.setTextColor(15,23,42);
+            doc.text('@m.Label', M+2, y+4);
+            doc.text('@sc', M+80, y+4);
+            doc.setTextColor(@(qRgb[0]),@(qRgb[1]),@(qRgb[2]));
+            doc.text('@ql', M+120, y+4);
+            y += 6;
+            </text>
+        }
+    }
+
+    // ── Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= pageCount; p++) {
+        doc.setPage(p);
+        doc.setFillColor(37,99,235); doc.rect(0,290,W,7,'F');
+        doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont('helvetica','normal');
+        doc.text('TrueFrame AI Görsel Doğrulama Platformu', M, 295);
+        doc.text('Sayfa ' + p + ' / ' + pageCount, W-M, 295, {align:'right'});
+    }
+
+    doc.save('trueframe-rapor-@(DateTime.Now.ToString("yyyyMMdd")).pdf');
+    btn.disabled = false;
+    btn.textContent = 'PDF Olarak İndir';
+}
+</script>

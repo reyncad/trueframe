@@ -1,0 +1,32 @@
+# ─────────────────────────────────────────────────────────────
+# TrueFrame Backend — Python Bağımlılıkları
+# ─────────────────────────────────────────────────────────────
+
+# Web Framework
+django>=4.2,<5.0
+gunicorn>=21.2.0
+
+# Ortam değişkenleri
+python-dotenv>=1.0.0
+
+# ML / AI Tespiti
+torch>=2.0.0
+torchvision>=0.15.0
+transformers>=4.35.0
+accelerate>=0.24.0
+onnx>=1.14.0
+onnxruntime>=1.16.0
+
+# IQA (Görsel Kalite Değerlendirmesi)
+pyiqa>=0.1.9
+
+# Görüntü İşleme
+Pillow>=10.0.0
+numpy>=1.24.0
+scipy>=1.11.0
+
+# HTTP (image_loader.py URL desteği)
+requests>=2.31.0
+
+# MIME tip doğrulama (güvenlik)
+python-magic>=0.4.27

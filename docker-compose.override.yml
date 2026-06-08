@@ -1,0 +1,45 @@
+version: "3.9"
+# ─────────────────────────────────────────────────────────────
+# Geliştirme ortamı override dosyası.
+# docker compose up çalıştırıldığında otomatik uygulanır.
+# Production'da: docker compose -f docker-compose.yml up
+#
+# BELLEK GEREKSİNİMİ:
+#   Tüm modeller (tespit + 8 IQA metriği) toplamda ~2.5–3 GB RAM kullanır.
+#   Docker Desktop → Settings → Resources → Memory: en az 4 GB önerilir.
+#   Düşük bellekli ortamlarda DISABLE_MANIP_DETECTOR=true bırakın (500 MB tasarruf).
+# ─────────────────────────────────────────────────────────────
+
+services:
+  backend:
+    environment:
+      DJANGO_DEBUG: "True"
+      # Manipülasyon dedektörünü devre dışı bırak (~500 MB RAM tasarrufu).
+      # Yeterli RAM varsa "false" yapılabilir.
+      DISABLE_MANIP_DETECTOR: "true"
+      # HuggingFace token (isteğe bağlı): rate limit uyarısını giderir, indirmeyi hızlandırır.
+      # https://huggingface.co/settings/tokens adresinden alın, .env dosyasına ekleyin.
+      # HF_TOKEN: ${HF_TOKEN:-}
+    # Geliştirmede kodu volume olarak mount et (hot reload)
+    volumes:
+      - ./backend:/app
+      - ./backend/models:/app/models:ro
+      - model_cache:/app/.cache
+      - backend_data:/app/data
+    # Geliştirmede runserver kullan (hot reload için)
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    # Geliştirmede backend'i de dışarıya aç
+    ports:
+      - "8000:8000"
+    # İlk çalıştırmada modeller HuggingFace'ten indirilir — uzun sürebilir.
+    # start_period: indirme + yükleme toplam süresi için tolerans.
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
+
+  frontend:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development

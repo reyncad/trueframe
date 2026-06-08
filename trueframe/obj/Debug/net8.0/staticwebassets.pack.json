@@ -1,0 +1,309 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\TrueFrameUI.bundle.scp.css",
+      "PackagePath": "staticwebassets\\TrueFrameUI.bundle.scp.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\css\\site.css",
+      "PackagePath": "staticwebassets\\css\\site.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\favicon.ico",
+      "PackagePath": "staticwebassets\\favicon.ico"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\js\\site.js",
+      "PackagePath": "staticwebassets\\js\\site.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\LICENSE",
+      "PackagePath": "staticwebassets\\lib\\bootstrap"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.min.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.js.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.min.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\LICENSE.txt"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\jquery-validation\\LICENSE.md",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\LICENSE.md"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\additional-methods.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\additional-methods.min.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\jquery.validate.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\jquery.validate.min.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\jquery\\LICENSE.txt",
+      "PackagePath": "staticwebassets\\lib\\jquery\\LICENSE.txt"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\jquery\\dist\\jquery.js",
+      "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\jquery\\dist\\jquery.min.js",
+      "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.js"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
+      "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.map"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\uploads\\0488ca98-e36a-41f5-9a71-5c117b755a5d.png",
+      "PackagePath": "staticwebassets\\uploads\\0488ca98-e36a-41f5-9a71-5c117b755a5d.png"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\uploads\\244d15ec-cf15-41e8-a2eb-5c081465c82e.png",
+      "PackagePath": "staticwebassets\\uploads\\244d15ec-cf15-41e8-a2eb-5c081465c82e.png"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\uploads\\2515b314-691d-4e9d-8613-a2a6718566e4.png",
+      "PackagePath": "staticwebassets\\uploads\\2515b314-691d-4e9d-8613-a2a6718566e4.png"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\uploads\\4ffc308e-149e-46a3-9c18-24bb9e6ce90d.png",
+      "PackagePath": "staticwebassets\\uploads\\4ffc308e-149e-46a3-9c18-24bb9e6ce90d.png"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\uploads\\83ba276e-bdb8-49ea-ad80-0b9667c2d0e3.png",
+      "PackagePath": "staticwebassets\\uploads\\83ba276e-bdb8-49ea-ad80-0b9667c2d0e3.png"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\uploads\\8bed83ce-2219-4dbf-b04b-9a7ec95e5d55.png",
+      "PackagePath": "staticwebassets\\uploads\\8bed83ce-2219-4dbf-b04b-9a7ec95e5d55.png"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\uploads\\9fddd4b9-d770-45a5-8acb-ca19a695ae88.png",
+      "PackagePath": "staticwebassets\\uploads\\9fddd4b9-d770-45a5-8acb-ca19a695ae88.png"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\uploads\\abf148a1-553d-4cf7-83cb-4db65d237fb1.png",
+      "PackagePath": "staticwebassets\\uploads\\abf148a1-553d-4cf7-83cb-4db65d237fb1.png"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\uploads\\dcb26f43-89ea-4c28-ae4d-b064fa9e8c1c.png",
+      "PackagePath": "staticwebassets\\uploads\\dcb26f43-89ea-4c28-ae4d-b064fa9e8c1c.png"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\uploads\\df6123be-702a-4390-ad5f-83c07f3d1ecc.png",
+      "PackagePath": "staticwebassets\\uploads\\df6123be-702a-4390-ad5f-83c07f3d1ecc.png"
+    },
+    {
+      "Id": "C:\\Users\\emine\\source\\repos\\TrueFrameUI\\TrueFrameUI\\wwwroot\\uploads\\eee34a27-2cdb-4fb9-a56d-aa5d2fab9a45.png",
+      "PackagePath": "staticwebassets\\uploads\\eee34a27-2cdb-4fb9-a56d-aa5d2fab9a45.png"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.TrueFrameUI.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.TrueFrameUI.props",
+      "PackagePath": "build\\TrueFrameUI.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.TrueFrameUI.props",
+      "PackagePath": "buildMultiTargeting\\TrueFrameUI.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.TrueFrameUI.props",
+      "PackagePath": "buildTransitive\\TrueFrameUI.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

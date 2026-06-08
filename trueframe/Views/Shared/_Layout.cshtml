@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - True Frame</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/TrueFrameUI.styles.css" asp-append-version="true" />
+</head>
+
+<body>
+
+    @{
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    }
+
+    <nav class="navbar navbar-expand-lg custom-navbar shadow-sm">
+        <div class="container">
+
+            <a class="navbar-brand fw-bold text-primary" asp-controller="Home" asp-action="Index">
+                True Frame
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNavbar">
+
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Home" && currentAction == "Index" ? "active-link" : "")"
+                           asp-controller="Home" asp-action="Index">
+                            Ana Sayfa
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Analysis" && currentAction == "Upload" ? "active-link" : "")"
+                           asp-controller="Analysis" asp-action="Upload">
+                            Analiz Yap
+                        </a>
+                    </li>
+
+                    @if (Context.Session.GetString("UserType") == "Registered")
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Analysis" && currentAction == "History" ? "active-link" : "")"
+                               asp-controller="Analysis" asp-action="History">
+                                Kayıtlarım
+                            </a>
+                        </li>
+                    }
+
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Home" && currentAction == "About" ? "active-link" : "")"
+                           asp-controller="Home" asp-action="About">
+                            Sistem Hakkında
+                        </a>
+                    </li>
+
+                    @if (Context.Session.GetString("UserType") == "Registered")
+                    {
+                        <li class="nav-item ms-lg-3">
+                            <span class="nav-user-pill">
+                                @Context.Session.GetString("UserEmail")
+                            </span>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="btn btn-outline-danger rounded-4 px-3"
+                               asp-controller="Auth" asp-action="Logout">
+                                Çıkış Yap
+                            </a>
+                        </li>
+                    }
+                    else if (Context.Session.GetString("UserType") == "Guest")
+                    {
+                        <li class="nav-item ms-lg-3">
+                            <span class="nav-guest-pill">Misafir</span>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="btn btn-primary rounded-4 px-3"
+                               asp-controller="Auth" asp-action="Login">
+                                Giriş Yap
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item ms-lg-3">
+                            <a class="btn btn-primary rounded-4 px-3"
+                               asp-controller="Auth" asp-action="Login">
+                                Giriş Yap
+                            </a>
+                        </li>
+                    }
+
+                </ul>
+
+            </div>
+
+        </div>
+    </nav>
+
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <footer class="custom-footer mt-5">
+        <div class="container py-4">
+            <div class="row align-items-center">
+
+                <div class="col-md-6">
+                    <h5 class="fw-bold text-primary mb-2">True Frame</h5>
+                    <p class="text-muted mb-0">
+                        Yapay Zekâ Üretimi Görsel Tespiti ve Görsel Kalite Analizi Sistemi
+                    </p>
+                </div>
+
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <p class="text-muted mb-1">
+                        Beykent Üniversitesi - Yazılım Mühendisliği
+                    </p>
+                    <p class="text-muted mb-0">
+                        Emine Balıktay • Nisa Şahinoğlu • Reyyan Çadırcı
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

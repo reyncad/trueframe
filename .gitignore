@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Dataset — large files, not tracked
+data/real/
+data/fake/
+data/test/
+data/_download/
+
+# Trained model weights — too large for git
+models/true_frame_model/model.safetensors
+models/true_frame_model/checkpoint-*/
+models/trueframe_v2/model.pt
+models/trueframe_v2/model.onnx
+
+# v2 dataset (downloaded via download_dataset_v2.py)
+data/v2/
+
+# Django
+*.log
+db.sqlite3
+staticfiles/
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+/.vs
+
+# ASP.NET
+TrueFrameUI/bin/
+TrueFrameUI/obj/
+TrueFrameUI/wwwroot/uploads/
+TrueFrameUI/Data/
+
+# Kullanıcı veritabanı — şifre hash'leri içerdiğinden repoya girmemeli
+frontend/Data/users.json
+frontend/wwwroot/uploads/
+
+# SQLite analiz geçmişi
+backend/data/iqa_history.db
+
+# Ortam değişkenleri — secret key'ler
+.env
+
+backend/models/trueframe_v2/model.onnx
+backend/models/trueframe_v2/model.ptbackend/models/trueframe_v2/model.onnx
+backend/models/trueframe_v2/model.pt

@@ -1,0 +1,118 @@
+@model TrueFrameUI.Models.HistoryViewModel
+@{
+    ViewData["Title"] = "Kayıtlarım";
+}
+
+<section class="history-page">
+    <div class="container py-5">
+
+        <div class="history-header mb-5">
+            <div>
+                <span class="section-label">Kayıtlarım</span>
+                <h1 class="section-title">Geçmiş analiz kayıtlarım</h1>
+                <p class="section-desc text-start ms-0">
+                    Daha önce yaptığınız analizler tarih sırasıyla listelenmektedir.
+                </p>
+            </div>
+            <a asp-controller="Analysis" asp-action="Upload" class="btn btn-primary rounded-4">
+                Yeni Analiz Yap
+            </a>
+        </div>
+
+        @* Hata mesajı *@
+        @if (!string.IsNullOrEmpty(Model.Error))
+        {
+            <div class="alert alert-danger rounded-4 mb-4">@Model.Error</div>
+        }
+
+        @* Uyarı mesajı *@
+        @if (!string.IsNullOrEmpty(Model.Warning))
+        {
+            <div class="alert alert-warning rounded-4 mb-4">@Model.Warning</div>
+        }
+
+        @* Kayıt listesi *@
+        @if (Model.Items.Count > 0)
+        {
+            <div class="row g-4">
+                @foreach (var item in Model.Items)
+                {
+                    var labelClass = item.Label switch {
+                        var l when l.Contains("YAPAY")       => "ai",
+                        var l when l.Contains("MANİPÜLE")    => "ai",
+                        var l when l.Contains("GERÇEK")      => "quality",
+                        _                                    => "both"
+                    };
+
+                    <div class="col-lg-4">
+                        <div class="history-record-card">
+
+                            <div class="record-top">
+                                <span class="record-type @labelClass">@(string.IsNullOrEmpty(item.Label) ? "Analiz" : item.Label)</span>
+                                <small>@(item.CreatedAt.Length >= 10 ? item.CreatedAt[..10] : item.CreatedAt)</small>
+                            </div>
+
+                            @* Thumbnail *@
+                            @if (!string.IsNullOrEmpty(item.Thumbnail))
+                            {
+                                <div class="text-center my-2">
+                                    <img src="@item.Thumbnail"
+                                         alt="Analiz görseli"
+                                         style="max-height:90px;border-radius:8px;object-fit:cover;" />
+                                </div>
+                            }
+
+                            <h4 class="mt-2">@item.Name</h4>
+
+                            @if (!string.IsNullOrEmpty(item.Verdict))
+                            {
+                                <p class="text-muted small" style="font-size:0.82rem;line-height:1.4">
+                                    @(item.Verdict.Length > 100 ? item.Verdict[..100] + "…" : item.Verdict)
+                                </p>
+                            }
+
+                            <div class="record-metrics">
+                                @if (item.FakeProb.HasValue)
+                                {
+                                    <div>
+                                        <span>AI</span>
+                                        <strong>@item.FakeProb.Value.ToString("F1")%</strong>
+                                    </div>
+                                }
+                                @if (item.Overall.HasValue)
+                                {
+                                    <div>
+                                        <span>Kalite</span>
+                                        <strong>@item.Overall.Value.ToString("F0")</strong>
+                                    </div>
+                                }
+                            </div>
+
+                            <a asp-controller="Analysis"
+                               asp-action="Details"
+                               asp-route-id="@item.Id"
+                               class="btn btn-outline-primary rounded-4 w-100 mt-4">
+                                Detay Gör
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else if (string.IsNullOrEmpty(Model.Error))
+        {
+            <div class="empty-history-box mt-5">
+                <h5>Henüz analiz kaydı yok</h5>
+                <p>
+                    Yaptığınız analizler burada otomatik olarak listelenir.
+                    Hemen bir görsel yükleyerek ilk analizinizi oluşturabilirsiniz.
+                </p>
+                <a asp-controller="Analysis" asp-action="Upload"
+                   class="btn btn-primary rounded-4 mt-3">
+                    İlk Analizini Yap
+                </a>
+            </div>
+        }
+
+    </div>
+</section>

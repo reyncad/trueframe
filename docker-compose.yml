@@ -1,0 +1,91 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────
+# TrueFrame — Docker Compose
+#
+# Servisler:
+#   backend  : Django + Gunicorn (port 8000, yalnızca iç ağda)
+#   frontend : ASP.NET Core MVC  (port 8080, dışarıya açık)
+#
+# Kullanım:
+#   cp .env.example .env       # gerekli değerleri doldur
+#   docker compose up --build
+# ─────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Django API ───────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: trueframe-backend
+    restart: unless-stopped
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,backend,${EXTRA_ALLOWED_HOSTS:-}"
+      # Internal API key — frontend bu key ile doğrulanır
+      TRUEFRAME_API_KEY: ${TRUEFRAME_API_KEY}
+    volumes:
+      # Model ağırlıkları (model.pt / model.onnx) lokalden mount edilir
+      - ./backend/models:/app/models:ro
+      # HuggingFace + pyiqa model cache (tekrar indirmeyi önler)
+      - model_cache:/app/.cache
+      # SQLite geçmiş veritabanı
+      - backend_data:/app/data
+    # Backend portu dışarıya açılmaz — yalnızca frontend'den erişilir
+    expose:
+      - "8000"
+    networks:
+      - trueframe-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s  # Model yükleme süresi
+
+  # ── ASP.NET MVC ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: trueframe-frontend
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Backend URL — container adıyla iç ağ üzerinden
+      ApiUrl: "http://backend:8000/api/analyze"
+      HistoryApiUrl: "http://backend:8000/api/history"
+      # Internal API key — backend ile eşleşmeli
+      TRUEFRAME_API_KEY: ${TRUEFRAME_API_KEY}
+      # Session güvenliği için güçlü bir anahtar gir
+      SessionKey: ${SESSION_KEY}
+    volumes:
+      # Kullanıcı verisi (users.json) kalıcı olsun
+      - frontend_data:/app/Data
+      # DataProtection key'leri: container rebuild sonrası session/CSRF token geçerliliği
+      - dp_keys:/app/DataProtection-Keys
+      # Yüklenen görseller (artık memory üzerinden — bu mount kaldırılabilir)
+      - uploads:/app/wwwroot/uploads
+    ports:
+      - "8080:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - trueframe-net
+
+# ── Volumes ──────────────────────────────────────────────────
+volumes:
+  model_cache:    # HuggingFace + pyiqa cache
+  backend_data:   # SQLite DB
+  frontend_data:  # users.json
+  dp_keys:        # ASP.NET DataProtection key ring (session + antiforgery)
+  uploads:        # Yüklenen görseller
+
+# ── Networks ─────────────────────────────────────────────────
+networks:
+  trueframe-net:
+    driver: bridge
