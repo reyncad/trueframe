@@ -117,6 +117,12 @@ namespace TrueFrameUI.Controllers
                     new System.Net.Http.Headers.MediaTypeHeaderValue(imageFile.ContentType);
                 form.Add(streamContent, "image", imageFile.FileName);
                 form.Add(new StringContent(profile ?? "none"), "profile");
+                // FIX: Analiz türü artık backend'e taşınıyor — yalnızca "kalite" seçiliyse
+                // AI/sahte tespit modeli backend'de hiç çağrılmaz.
+                form.Add(new StringContent(realFakeSelected ? "true" : "false"), "analyze_ai");
+                form.Add(new StringContent(qualitySelected  ? "true" : "false"), "analyze_quality");
+                // Kullanıcı izolasyonu: kayıt sahibi (kayıtlı e-posta veya 'guest')
+                form.Add(new StringContent(CurrentUserKey()), "user");
 
                 // İç ağ API key header'ı
                 if (!string.IsNullOrEmpty(ApiKey))
@@ -133,7 +139,8 @@ namespace TrueFrameUI.Controllers
                 var qualityError = apiResponse.Quality?.Error;
 
                 model = MapToViewModel(apiResponse, previewUri,
-                                       realFakeSelected, qualitySelected, qualityError);
+                                       realFakeSelected, qualitySelected, qualityError,
+                                       apiResponse.SavedId);
             }
             catch (TaskCanceledException)
             {
@@ -167,7 +174,9 @@ namespace TrueFrameUI.Controllers
 
         // ── History ───────────────────────────────────────────
 
-        public async Task<IActionResult> History()
+        public async Task<IActionResult> History(
+            string? result, double? minScore, double? maxScore,
+            string? dateFrom, string? dateTo, string? fileType, string? q, string? profile)
         {
             var userType = HttpContext.Session.GetString("UserType");
             if (userType != "Registered")
@@ -176,7 +185,17 @@ namespace TrueFrameUI.Controllers
                 return RedirectToAction("Login", "Auth");
             }
 
-            var viewModel = new HistoryViewModel();
+            var viewModel = new HistoryViewModel
+            {
+                FilterResult   = result,
+                FilterMinScore = minScore,
+                FilterMaxScore = maxScore,
+                FilterDateFrom = dateFrom,
+                FilterDateTo   = dateTo,
+                FilterFileType = fileType,
+                FilterQuery    = q,
+                FilterProfile  = profile,
+            };
             try
             {
                 var client = _httpClientFactory.CreateClient();
@@ -185,7 +204,25 @@ namespace TrueFrameUI.Controllers
                 if (!string.IsNullOrEmpty(ApiKey))
                     client.DefaultRequestHeaders.Add("X-TrueFrame-Key", ApiKey);
 
-                var response = await client.GetAsync(HistoryApiUrl);
+                // Filtre parametrelerini backend sorgusuna taşı
+                var qs = new List<string>();
+                void AddParam(string key, string? val)
+                {
+                    if (!string.IsNullOrWhiteSpace(val))
+                        qs.Add($"{key}={Uri.EscapeDataString(val.Trim())}");
+                }
+                AddParam("result",    result);
+                AddParam("min_score", minScore?.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                AddParam("max_score", maxScore?.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                AddParam("date_from", dateFrom);
+                AddParam("date_to",   dateTo);
+                AddParam("file_type", fileType);
+                AddParam("profile",   profile);
+                AddParam("q",         q);
+                AddParam("user",      CurrentUserKey());   // kullanıcı izolasyonu
+                var url = HistoryApiUrl + (qs.Count > 0 ? "?" + string.Join("&", qs) : "");
+
+                var response = await client.GetAsync(url);
                 var json     = await response.Content.ReadAsStringAsync();
 
                 using var doc  = JsonDocument.Parse(json);
@@ -242,7 +279,8 @@ namespace TrueFrameUI.Controllers
                 if (!string.IsNullOrEmpty(ApiKey))
                     client.DefaultRequestHeaders.Add("X-TrueFrame-Key", ApiKey);
 
-                var response = await client.GetAsync($"{HistoryApiUrl}/{id}");
+                var response = await client.GetAsync(
+                    $"{HistoryApiUrl}/{id}?user={Uri.EscapeDataString(CurrentUserKey())}");
 
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
@@ -262,7 +300,10 @@ namespace TrueFrameUI.Controllers
                 string createdAt = doc.RootElement.TryGetProperty("created_at", out var ca) ? ca.GetString() ?? "" : "";
                 string name      = doc.RootElement.TryGetProperty("name", out var nm) ? nm.GetString() ?? "" : "";
 
-                model = MapToViewModel(apiResponse, thumbnail, true, true, null);
+                // Kayıtta hangi analizler çalıştıysa onları göster (eski kayıtlarda flag yok → ikisi de)
+                model = MapToViewModel(apiResponse, thumbnail,
+                                       apiResponse.Analysis?.Ai ?? true,
+                                       apiResponse.Analysis?.Quality ?? true, null);
                 model.CreatedAt   = createdAt;
                 model.OriginalName = name;
             }
@@ -274,14 +315,99 @@ namespace TrueFrameUI.Controllers
             return View(model);
         }
 
+        // ── Delete ────────────────────────────────────────────
+        // FIX: backend delete_analysis() hiç bağlanmamıştı — kayıt silme eklendi.
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var userType = HttpContext.Session.GetString("UserType");
+            if (userType != "Registered")
+            {
+                TempData["AccessError"] = "Bu işlem için giriş yapmalısınız.";
+                return RedirectToAction("Login", "Auth");
+            }
+
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+                client.Timeout = TimeSpan.FromSeconds(15);
+                if (!string.IsNullOrEmpty(ApiKey))
+                    client.DefaultRequestHeaders.Add("X-TrueFrame-Key", ApiKey);
+
+                var response = await client.PostAsync(
+                    $"{HistoryApiUrl}/{id}/delete?user={Uri.EscapeDataString(CurrentUserKey())}", null);
+                if (!response.IsSuccessStatusCode)
+                    TempData["AccessError"] = "Kayıt silinemedi.";
+            }
+            catch
+            {
+                TempData["AccessError"] = "Silme servisi yanıt vermedi.";
+            }
+            return RedirectToAction("History");
+        }
+
+        // ── HTML Rapor (proxy) ────────────────────────────────
+        // FIX: backend /api/report/<id> raporu UI'dan erişilemiyordu.
+        // Backend iç ağda olduğundan frontend proxy'ler ve API key'i ekler.
+        public async Task<IActionResult> Report(int id)
+        {
+            var userType = HttpContext.Session.GetString("UserType");
+            if (userType != "Registered")
+            {
+                TempData["AccessError"] = "Raporu görüntülemek için lütfen giriş yapınız.";
+                return RedirectToAction("Login", "Auth");
+            }
+
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+                client.Timeout = TimeSpan.FromSeconds(20);
+                if (!string.IsNullOrEmpty(ApiKey))
+                    client.DefaultRequestHeaders.Add("X-TrueFrame-Key", ApiKey);
+
+                // .../api/history → .../api/report
+                var reportUrl = HistoryApiUrl.Replace("/api/history", "/api/report");
+                var response = await client.GetAsync(
+                    $"{reportUrl}/{id}?user={Uri.EscapeDataString(CurrentUserKey())}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    TempData["AccessError"] = "Rapor bulunamadı.";
+                    return RedirectToAction("History");
+                }
+
+                var htmlContent = await response.Content.ReadAsStringAsync();
+                return Content(htmlContent, "text/html; charset=utf-8");
+            }
+            catch
+            {
+                TempData["AccessError"] = "Rapor servisi yanıt vermedi.";
+                return RedirectToAction("History");
+            }
+        }
+
         // ── Yardımcı metodlar ─────────────────────────────────
+
+        /// <summary>
+        /// Geçmiş kayıtlarının sahibi: kayıtlı kullanıcı e-postası veya "guest".
+        /// Backend bu değerle kayıtları izole eder (kullanıcı başka kullanıcının
+        /// kaydını göremez/silemez; misafir analizleri kimsenin listesine düşmez).
+        /// </summary>
+        private string CurrentUserKey()
+        {
+            var userType = HttpContext.Session.GetString("UserType");
+            if (userType == "Registered")
+                return HttpContext.Session.GetString("UserEmail") ?? "guest";
+            return "guest";
+        }
 
         private static AnalysisViewModel MapToViewModel(
             AnalysisApiResponse api,
             string imagePath,
             bool realFakeSelected,
             bool qualitySelected,
-            string? qualityError)
+            string? qualityError,
+            int savedId = 0)
         {
             var q    = api.Quality;
             var dims = q?.Dimensions;
@@ -290,6 +416,9 @@ namespace TrueFrameUI.Controllers
             var col  = q?.Color;
             var geo  = q?.Geometry;
             var exif = q?.Exif;
+            var cn   = q?.ColorNoise;
+            var sm   = q?.SharpnessMap;
+            var hm   = q?.HighlightMap;
 
             return new AnalysisViewModel
             {
@@ -327,22 +456,39 @@ namespace TrueFrameUI.Controllers
                 ColorMode   = tech?.ColorMode,
                 Dpi         = tech?.Dpi,
 
-                // EXIF
-                ExifDatetime = exif?.Datetime ?? "",
+                // EXIF — tüm alanlar (FIX: yalnızca datetime aktarılıyordu)
+                ExifDatetime    = exif?.Datetime ?? "",
+                ExifCamera      = exif?.Camera,
+                ExifLens        = exif?.Lens,
+                ExifIso         = exif?.Iso,
+                ExifAperture    = exif?.Aperture,
+                ExifShutter     = exif?.Shutter,
+                ExifFocalLength = exif?.FocalLength,
+                ExifFlash       = exif?.Flash,
+                ExifHasGps      = exif?.HasGps,
 
                 // Pozlama (avg_brightness [0-1] → [0-100] dönüşümü)
                 ExposureLabel  = exp?.Label          ?? "",
                 HighlightClip  = exp?.HighlightClip  ?? 0,
                 ShadowClip     = exp?.ShadowClip     ?? 0,
                 DynamicRange   = exp?.DynamicRange   ?? 0,
-                AvgBrightness  = (exp?.AvgBrightness ?? 0) * 255.0,  // [0-1] → [0-255]
+                AvgBrightness  = exp?.AvgBrightness ?? 0,  // API artık [0-255] döndürüyor
+                ContrastRms    = exp?.ContrastRms,
 
                 // Renk & Gürültü
-                ColorCast        = col?.Cast,
-                ColorTemperature = col?.Temperature,
-                ColorTint        = col?.Tint,
-                Saturation       = col?.Saturation,
-                ColorNoise       = col?.Noise,
+                ColorCast             = col?.Cast,
+                CastStrength          = col?.CastStrength,
+                ColorTemperature      = col?.Temperature,
+                ColorTemperatureLabel = col?.TemperatureLabel,
+                ColorTint             = col?.Tint,
+                Saturation            = col?.Saturation,
+                ColorNoise            = col?.Noise,
+
+                // Kroma gürültü detayı (FIX: color_noise hiç aktarılmıyordu)
+                LumaNoise             = cn?.LumaNoise,
+                ChromaNoise           = cn?.ChromaNoise,
+                ColorNoiseSeverity    = cn?.Severity,
+                ColorNoiseDescription = cn?.Description,
 
                 // Geometri & Blur
                 BlurType       = geo?.BlurType,
@@ -372,6 +518,27 @@ namespace TrueFrameUI.Controllers
                     Value  = c.Value,
                     Needed = c.Needed,
                 }).ToList() ?? new(),
+
+                // Bölgesel haritalar
+                SharpnessGrid   = sm?.Grid,
+                SharpnessRows   = sm?.Rows ?? 0,
+                SharpnessCols   = sm?.Cols ?? 0,
+                SharpnessGlobal = sm?.GlobalScore ?? 0,
+                SharpestRow     = sm?.SharpestCell?.Count >= 2 ? sm.SharpestCell[0] : -1,
+                SharpestCol     = sm?.SharpestCell?.Count >= 2 ? sm.SharpestCell[1] : -1,
+                SoftestRow      = sm?.SoftestCell?.Count  >= 2 ? sm.SoftestCell[0]  : -1,
+                SoftestCol      = sm?.SoftestCell?.Count  >= 2 ? sm.SoftestCell[1]  : -1,
+
+                HighlightGrid        = hm?.Grid,
+                HighlightRows        = hm?.Rows ?? 0,
+                HighlightCols        = hm?.Cols ?? 0,
+                HighlightHasCritical = hm?.HasCritical ?? false,
+                HighlightWorstPct    = hm?.WorstPct    ?? 0,
+                HighlightGlobalPct   = hm?.GlobalPct   ?? 0,
+                HighlightWorstRow    = hm?.WorstCell?.Count >= 2 ? hm.WorstCell[0] : -1,
+                HighlightWorstCol    = hm?.WorstCell?.Count >= 2 ? hm.WorstCell[1] : -1,
+
+                SavedId = savedId,
 
                 StatusMessage = string.IsNullOrEmpty(qualityError)
                     ? "Analiz başarıyla tamamlandı."

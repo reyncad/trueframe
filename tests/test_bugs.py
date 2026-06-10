@@ -357,6 +357,180 @@ def test_verdict_with_valid_data():
 
 
 # ═════════════════════════════════════════════════════════════
+# BÖLÜM 11: Geçmiş filtreleri (yeni özellik)
+# ═════════════════════════════════════════════════════════════
+
+def test_get_history_filters():
+    """get_history() filtre parametreleri doğru çalışmalı."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        import core.db as db_mod
+        orig_path = db_mod.DB_PATH
+        db_mod.DB_PATH = Path(os.path.join(tmpdir, "test.db"))
+        try:
+            db_mod.init_db()
+            img = make_test_image()
+            db_mod.save_analysis({"name": "a.jpg",  "profile": "web",    "overall": 80.0,
+                                  "label": "MUHTEMELEN GERÇEK", "fake_prob": 10, "real_prob": 90}, img)
+            db_mod.save_analysis({"name": "b.png",  "profile": "social", "overall": 40.0,
+                                  "label": "KESİNLİKLE YAPAY",  "fake_prob": 95, "real_prob": 5}, img)
+            db_mod.save_analysis({"name": "c.webp", "profile": "none",   "overall": 60.0,
+                                  "label": "MANİPÜLE EDİLMİŞ",  "fake_prob": 30, "real_prob": 70}, img)
+
+            assert len(db_mod.get_history()) == 3
+            assert [i["name"] for i in db_mod.get_history(result_filter="ai")]    == ["b.png"]
+            assert [i["name"] for i in db_mod.get_history(result_filter="real")]  == ["a.jpg"]
+            assert [i["name"] for i in db_mod.get_history(result_filter="manip")] == ["c.webp"]
+            assert [i["name"] for i in db_mod.get_history(min_score=50)] == ["c.webp", "a.jpg"]
+            assert [i["name"] for i in db_mod.get_history(min_score=50, max_score=70)] == ["c.webp"]
+            assert [i["name"] for i in db_mod.get_history(file_type="jpg")] == ["a.jpg"]
+            assert [i["name"] for i in db_mod.get_history(profile="social")] == ["b.png"]
+            assert [i["name"] for i in db_mod.get_history(search="b.")] == ["b.png"]
+            assert db_mod.get_history(date_from="2099-01-01") == []
+            assert len(db_mod.get_history(date_to="2099-01-01")) == 3
+            print("  ✓ get_history filtreleri: result/score/file_type/profile/search/date OK")
+        finally:
+            db_mod.DB_PATH = orig_path
+
+
+# ═════════════════════════════════════════════════════════════
+# BÖLÜM 12: Analiz türü dallandırması (yeni özellik)
+# ═════════════════════════════════════════════════════════════
+
+def test_analyze_type_branching():
+    """
+    Yalnızca 'kalite' seçildiğinde AI modeli HİÇ çağrılmamalı.
+    api_views.analyze() analyze_ai/analyze_quality bayraklarına göre dallanmalı.
+    """
+    src = (BACKEND / "detector" / "api_views.py").read_text()
+    assert 'request.POST.get("analyze_ai")' in src,      "analyze_ai payload'dan okunmuyor"
+    assert 'request.POST.get("analyze_quality")' in src, "analyze_quality payload'dan okunmuyor"
+    assert "if analyze_ai:" in src,      "AI tespiti koşulsuz çalışıyor — dallandırma yok"
+    assert "if analyze_quality:" in src, "Kalite analizi koşulsuz çalışıyor — dallandırma yok"
+
+    controller = (ROOT / "frontend" / "Controllers" / "AnalysisController.cs").read_text()
+    assert '"analyze_ai"' in controller and '"analyze_quality"' in controller, \
+        "Frontend analiz türünü backend'e göndermiyor"
+    print("  ✓ Analiz türü payload'da taşınıyor; backend dallandırıyor")
+
+
+def test_parse_bool():
+    """_parse_bool yardımcı fonksiyonu doğru çalışmalı."""
+    import importlib.util as ilu
+    src = (BACKEND / "detector" / "api_views.py").read_text()
+    # Django bağımlılığı olmadan sadece fonksiyonu çalıştır
+    ns = {}
+    fn_src = src[src.find("def _parse_bool"):src.find("@csrf_exempt\n@require_POST")]
+    exec(fn_src, ns)
+    pb = ns["_parse_bool"]
+    assert pb("true") is True and pb("1") is True and pb("YES") is True
+    assert pb("false") is False and pb("0") is False
+    assert pb(None) is True and pb("") is True          # varsayılan
+    assert pb(None, default=False) is False
+    print("  ✓ _parse_bool doğru çalışıyor")
+
+
+# ═════════════════════════════════════════════════════════════
+# BÖLÜM 13: Kalite yanıtı eksik metrikler (yeni özellik)
+# ═════════════════════════════════════════════════════════════
+
+def test_quality_response_completeness():
+    """color_noise, EXIF detayları ve kontrast API yanıtına eklenmiş olmalı."""
+    src = (BACKEND / "detector" / "api_views.py").read_text()
+    for key in ['"color_noise"', '"camera"', '"iso"', '"aperture"', '"shutter"',
+                '"focal_length"', '"contrast_rms"', '"temperature_label"']:
+        assert key in src, f"REGRESSION: {key} API yanıtında yok"
+
+    dto = (ROOT / "frontend" / "Models" / "AnalysisApiResponse.cs").read_text()
+    assert "ColorNoiseResponse" in dto, "Frontend DTO'da ColorNoiseResponse yok"
+    assert "FocalLength" in dto,        "Frontend DTO'da EXIF detayları eksik"
+    print("  ✓ color_noise + EXIF + kontrast uçtan uca tanımlı")
+
+
+# ═════════════════════════════════════════════════════════════
+# BÖLÜM 14: Rapor XSS escape (güvenlik düzeltmesi)
+# ═════════════════════════════════════════════════════════════
+
+def test_report_html_escapes_user_input():
+    """Dosya adı/verdict gibi kullanıcı kontrollü alanlar HTML'e escape edilmeli."""
+    from core.report import render_html_report
+    html_out = render_html_report({
+        "name":    '<script>alert("xss")</script>.jpg',
+        "overall": 50,
+        "verdict": '<img src=x onerror=alert(1)>',
+    })
+    assert "<script>alert" not in html_out, "XSS: dosya adı escape edilmiyor"
+    assert "<img src=x onerror" not in html_out, "XSS: verdict escape edilmiyor"
+    assert "&lt;script&gt;" in html_out
+    print("  ✓ render_html_report kullanıcı girdisini escape ediyor")
+
+
+def test_delete_endpoint_wired():
+    """delete_analysis() artık bir endpoint'e ve UI'a bağlı olmalı."""
+    urls_src = (BACKEND / "trueframe" / "urls.py").read_text()
+    assert "history_delete" in urls_src, "Silme endpoint'i urls.py'de yok"
+    history_view = (ROOT / "frontend" / "Views" / "Analysis" / "History.cshtml").read_text()
+    assert 'asp-action="Delete"' in history_view, "Silme butonu History.cshtml'de yok"
+    print("  ✓ delete_analysis endpoint + UI butonu bağlı")
+
+
+# ═════════════════════════════════════════════════════════════
+# BÖLÜM 15: Kullanıcı-bazlı geçmiş izolasyonu (yeni özellik)
+# ═════════════════════════════════════════════════════════════
+
+def test_history_user_isolation():
+    """
+    SECURITY FIX: Kayıtlar kullanıcıya bağlı; kimse başkasının kaydını
+    göremez/silemez. Migration öncesi sahipsiz kayıtlar görünür kalır,
+    misafir analizleri kayıtlı kullanıcıların listesine düşmez.
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+        import core.db as db_mod
+        orig_path = db_mod.DB_PATH
+        db_mod.DB_PATH = Path(os.path.join(tmpdir, "test.db"))
+        try:
+            db_mod.init_db()
+            img = make_test_image()
+            id_a  = db_mod.save_analysis({"name": "alice.jpg", "user": "alice@x.com", "overall": 70}, img)
+            id_b  = db_mod.save_analysis({"name": "bob.jpg",   "user": "bob@x.com",   "overall": 60}, img)
+            id_g  = db_mod.save_analysis({"name": "guest.jpg", "user": "guest",       "overall": 50}, img)
+            id_old= db_mod.save_analysis({"name": "legacy.jpg",                        "overall": 40}, img)  # sahipsiz
+
+            # Liste izolasyonu
+            names_a = [i["name"] for i in db_mod.get_history(user="alice@x.com")]
+            assert "alice.jpg" in names_a and "legacy.jpg" in names_a, f"alice kendi+legacy görmeli: {names_a}"
+            assert "bob.jpg" not in names_a and "guest.jpg" not in names_a, f"alice başkasını görmemeli: {names_a}"
+
+            # Detay izolasyonu
+            assert db_mod.get_analysis(id_b, user="alice@x.com") is None, "alice bob'un kaydını açabildi"
+            assert db_mod.get_analysis(id_a, user="alice@x.com") is not None
+            assert db_mod.get_analysis(id_old, user="alice@x.com") is not None, "legacy kayıt erişilemez oldu"
+
+            # Silme izolasyonu
+            assert db_mod.delete_analysis(id_b, user="alice@x.com") is False, "alice bob'un kaydını silebildi"
+            assert db_mod.delete_analysis(id_a, user="alice@x.com") is True
+
+            # user=None (eski çağrı imzası) hâlâ tüm kayıtları döndürür — geriye uyum
+            assert len(db_mod.get_history()) == 3
+            print("  ✓ liste/detay/silme izolasyonu + legacy görünürlüğü + geriye uyum OK")
+        finally:
+            db_mod.DB_PATH = orig_path
+
+
+def test_user_isolation_wired_end_to_end():
+    """user parametresi API uçlarına ve frontend'e bağlı olmalı."""
+    api_src = (BACKEND / "detector" / "api_views.py").read_text()
+    assert 'request.POST.get("user"' in api_src, "analyze kayıt sahibini almıyor"
+    assert 'g.get("user"' in api_src,            "history_list user süzgeci yok"
+
+    urls_src = (BACKEND / "trueframe" / "urls.py").read_text()
+    assert 'request.GET.get("user"' in urls_src, "html_report user süzgeci yok"
+
+    ctrl = (ROOT / "frontend" / "Controllers" / "AnalysisController.cs").read_text()
+    assert "CurrentUserKey()" in ctrl and '"user"' in ctrl, "frontend kullanıcıyı iletmiyor"
+    print("  ✓ user parametresi analyze/history/detail/delete/report + frontend'de bağlı")
+
+
+# ═════════════════════════════════════════════════════════════
 # TEST RUNNER
 # ═════════════════════════════════════════════════════════════
 
@@ -373,6 +547,14 @@ TESTS = [
     ("dimensions_range",             test_dimensions_range),
     ("verdict_empty_inputs",         test_verdict_with_empty_inputs),
     ("verdict_valid_data",           test_verdict_with_valid_data),
+    ("get_history_filters",          test_get_history_filters),
+    ("analyze_type_branching",       test_analyze_type_branching),
+    ("parse_bool",                   test_parse_bool),
+    ("quality_response_complete",    test_quality_response_completeness),
+    ("report_xss_escape",            test_report_html_escapes_user_input),
+    ("delete_endpoint_wired",        test_delete_endpoint_wired),
+    ("history_user_isolation",       test_history_user_isolation),
+    ("user_isolation_wired",         test_user_isolation_wired_end_to_end),
 ]
 
 

@@ -20,6 +20,18 @@ namespace TrueFrameUI.Models
 
         // ── Kalite ────────────────────────────────────────────
         [JsonPropertyName("quality")]        public QualityResponse? Quality { get; set; }
+
+        // ── Hangi analizler çalıştı ───────────────────────────
+        [JsonPropertyName("analysis")]       public AnalysisFlags? Analysis { get; set; }
+
+        // ── DB kayıt ID'si (analyze yanıtında döner) ──────────
+        [JsonPropertyName("saved_id")]       public int SavedId { get; set; }
+    }
+
+    public class AnalysisFlags
+    {
+        [JsonPropertyName("ai")]      public bool Ai      { get; set; } = true;
+        [JsonPropertyName("quality")] public bool Quality { get; set; } = true;
     }
 
     public class QualityResponse
@@ -37,9 +49,35 @@ namespace TrueFrameUI.Models
         [JsonPropertyName("exposure")]       public ExposureResponse?    Exposure    { get; set; }
         [JsonPropertyName("color")]          public ColorResponse?       Color       { get; set; }
         [JsonPropertyName("geometry")]       public GeometryResponse?    Geometry    { get; set; }
+        [JsonPropertyName("color_noise")]    public ColorNoiseResponse?  ColorNoise  { get; set; }
 
         [JsonPropertyName("iqa_metrics")]    public List<IqaMetricItemDto>? IqaMetrics  { get; set; }
         [JsonPropertyName("checks")]         public List<CheckItemDto>?  Checks      { get; set; }
+
+        // Bölgesel haritalar — grid: List<List<double>>, değerler 0-100
+        [JsonPropertyName("sharpness_map")]  public SharpnessMapDto?  SharpnessMap { get; set; }
+        [JsonPropertyName("highlight_map")]  public HighlightMapDto?  HighlightMap { get; set; }
+    }
+
+    public class SharpnessMapDto
+    {
+        [JsonPropertyName("grid")]           public List<List<double>>? Grid         { get; set; }
+        [JsonPropertyName("rows")]           public int                 Rows         { get; set; }
+        [JsonPropertyName("cols")]           public int                 Cols         { get; set; }
+        [JsonPropertyName("sharpest_cell")]  public List<int>?          SharpestCell { get; set; }
+        [JsonPropertyName("softest_cell")]   public List<int>?          SoftestCell  { get; set; }
+        [JsonPropertyName("global_score")]   public double              GlobalScore  { get; set; }
+    }
+
+    public class HighlightMapDto
+    {
+        [JsonPropertyName("grid")]           public List<List<double>>? Grid        { get; set; }
+        [JsonPropertyName("rows")]           public int                 Rows        { get; set; }
+        [JsonPropertyName("cols")]           public int                 Cols        { get; set; }
+        [JsonPropertyName("worst_cell")]     public List<int>?          WorstCell   { get; set; }
+        [JsonPropertyName("worst_pct")]      public double              WorstPct    { get; set; }
+        [JsonPropertyName("has_critical")]   public bool                HasCritical { get; set; }
+        [JsonPropertyName("global_pct")]     public double              GlobalPct   { get; set; }
     }
 
     public class DimensionsResponse
@@ -64,7 +102,15 @@ namespace TrueFrameUI.Models
 
     public class ExifResponse
     {
-        [JsonPropertyName("datetime")]   public string? Datetime { get; set; }
+        [JsonPropertyName("datetime")]     public string? Datetime    { get; set; }
+        [JsonPropertyName("camera")]       public string? Camera      { get; set; }
+        [JsonPropertyName("lens")]         public string? Lens        { get; set; }
+        [JsonPropertyName("iso")]          public int?    Iso         { get; set; }
+        [JsonPropertyName("aperture")]     public string? Aperture    { get; set; }
+        [JsonPropertyName("shutter")]      public string? Shutter     { get; set; }
+        [JsonPropertyName("focal_length")] public string? FocalLength { get; set; }
+        [JsonPropertyName("flash")]        public bool?   Flash       { get; set; }
+        [JsonPropertyName("has_gps")]      public bool?   HasGps      { get; set; }
     }
 
     public class ExposureResponse
@@ -74,15 +120,26 @@ namespace TrueFrameUI.Models
         [JsonPropertyName("shadow_clip")]    public double  ShadowClip    { get; set; }
         [JsonPropertyName("dynamic_range")]  public double  DynamicRange  { get; set; }
         [JsonPropertyName("avg_brightness")] public double  AvgBrightness { get; set; }
+        [JsonPropertyName("contrast_rms")]   public double? ContrastRms   { get; set; }
     }
 
     public class ColorResponse
     {
-        [JsonPropertyName("cast")]        public string? Cast        { get; set; }
-        [JsonPropertyName("temperature")] public double? Temperature { get; set; }
-        [JsonPropertyName("tint")]        public double? Tint        { get; set; }
-        [JsonPropertyName("saturation")]  public double? Saturation  { get; set; }
-        [JsonPropertyName("noise")]       public string? Noise       { get; set; }
+        [JsonPropertyName("cast")]              public string? Cast             { get; set; }
+        [JsonPropertyName("cast_strength")]     public double? CastStrength     { get; set; }
+        [JsonPropertyName("temperature")]       public double? Temperature      { get; set; }
+        [JsonPropertyName("temperature_label")] public string? TemperatureLabel { get; set; }
+        [JsonPropertyName("tint")]              public double? Tint             { get; set; }
+        [JsonPropertyName("saturation")]        public double? Saturation       { get; set; }
+        [JsonPropertyName("noise")]             public string? Noise            { get; set; }
+    }
+
+    public class ColorNoiseResponse
+    {
+        [JsonPropertyName("luma_noise")]   public double? LumaNoise   { get; set; }
+        [JsonPropertyName("chroma_noise")] public double? ChromaNoise { get; set; }
+        [JsonPropertyName("severity")]     public string? Severity    { get; set; }
+        [JsonPropertyName("description")]  public string? Description { get; set; }
     }
 
     public class GeometryResponse

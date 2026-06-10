@@ -1,105 +1,142 @@
 @model TrueFrameUI.Models.AnalysisViewModel
 @{
     ViewData["Title"] = "Analiz Sonucu";
+    bool showQuality    = Model.QualitySelected && Model.QualityScore > 0;
+    bool hasSharpMap    = Model.SharpnessGrid  != null && Model.SharpnessGrid.Count  > 0;
+    bool hasHeatmapTab  = showQuality && hasSharpMap;
+    var  IC             = System.Globalization.CultureInfo.InvariantCulture;
 }
 
-<section class="result-page">
-    <div class="container py-5">
+<style>
+/* ── Sekme navigasyonu ───────────────────────────────── */
+.result-nav-tabs { display:flex; gap:0; border-bottom:2px solid #e5e7eb; margin-bottom:1.5rem; flex-wrap:wrap; }
+.result-nav-tabs button {
+    background:none; border:none; padding:.6rem 1.1rem; font-size:.78rem; font-weight:600;
+    letter-spacing:.06em; text-transform:uppercase; color:#6b7280; cursor:pointer;
+    border-bottom:2px solid transparent; margin-bottom:-2px; transition:color .15s,border-color .15s;
+}
+.result-nav-tabs button.active { color:#2563eb; border-bottom-color:#2563eb; }
+.result-nav-tabs button:hover:not(.active) { color:#374151; }
 
-        <div class="result-header mb-5">
-            <div>
-                <span class="section-label">Analiz Sonucu</span>
-                <h1 class="section-title">Analiz sonucu hazır</h1>
-                <p class="section-desc text-start ms-0">
-                    Yüklenen görsel için seçilen analiz sonuçları aşağıda özetlenmiştir.
-                </p>
-            </div>
-            <a asp-controller="Analysis" asp-action="Upload" class="btn btn-outline-primary rounded-4">
-                Yeni Analiz Yap
-            </a>
+/* ── Histogram kutusu ────────────────────────────────── */
+.histogram-box { background:#111827; border-radius:10px; padding:1.2rem 1.2rem .8rem; }
+.histogram-box h6 { color:#9ca3af; font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; margin-bottom:.8rem; }
+
+/* ── Renk swatches ───────────────────────────────────── */
+.color-swatches { display:flex; gap:8px; flex-wrap:wrap; margin-top:.5rem; }
+.color-swatch   { width:36px; height:36px; border-radius:6px; border:1px solid rgba(255,255,255,.15); }
+
+/* ── Overlay heatmap canvas ──────────────────────────── */
+.heatmap-overlay-canvas { width:100%; border-radius:10px; display:block; }
+
+/* ── Özet kart ───────────────────────────────────────── */
+.stat-card { background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:.9rem 1rem; }
+.stat-card .stat-label { font-size:.68rem; text-transform:uppercase; letter-spacing:.07em; color:#6b7280; margin-bottom:.25rem; }
+.stat-card .stat-value { font-size:1.1rem; font-weight:700; color:#111827; }
+
+/* ── Renk analizi kartları (dark) ────────────────────── */
+.dark-metric-card { background:#1f2937; border-radius:10px; padding:1rem; }
+.dark-metric-card .dmc-label { font-size:.65rem; text-transform:uppercase; letter-spacing:.07em; color:#9ca3af; margin-bottom:.3rem; }
+.dark-metric-card .dmc-value { font-size:1.05rem; font-weight:700; color:#f9fafb; }
+
+/* ── Teknik tablo ────────────────────────────────────── */
+.info-section-title { font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:#9ca3af; margin-bottom:.75rem; padding-bottom:.4rem; border-bottom:1px solid #e5e7eb; }
+</style>
+
+<section class="result-page">
+<div class="container py-5">
+
+    @* ── Sayfa başlığı ─────────────────────────────────── *@
+    <div class="result-header mb-4">
+        <div>
+            <span class="section-label">Analiz Sonucu</span>
+            <h1 class="section-title">Analiz sonucu hazır</h1>
+        </div>
+        <a asp-controller="Analysis" asp-action="Upload" class="btn btn-outline-primary rounded-4">
+            Yeni Analiz Yap
+        </a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">@Model.ErrorMessage</div>
+    }
+
+    @* ── Ana kart ───────────────────────────────────────── *@
+    <div class="result-summary-card">
+
+        <div class="status-success-box mb-4">
+            <div><strong>@Model.StatusMessage</strong></div>
+            <span>Completed</span>
         </div>
 
-        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-        {
-            <div class="alert alert-danger">@Model.ErrorMessage</div>
-        }
+        @* ── Sekme navigasyonu ──────────────────────────── *@
+        <div class="result-nav-tabs" id="resultTabs">
+            <button class="active" data-tab="genel">Genel</button>
+            @if (showQuality)
+            {
+                <button data-tab="teknik">Teknik &amp; EXIF</button>
+                <button data-tab="histogram">Histogram &amp; Renk</button>
+            }
+            @if (hasHeatmapTab)
+            {
+                <button data-tab="heatmap">Keskinlik Haritası</button>
+            }
+        </div>
 
-        <div class="row g-4">
+        @* ════════════════════════════════════════════════════
+           SEKME 1 — GENEL
+           ════════════════════════════════════════════════════ *@
+        <div id="tab-genel" class="result-tab">
+            <div class="row g-4">
 
-            
-@* Sol: Görsel  *@
-            <div class="col-lg-5">
-                <div class="result-image-card">
-                    <div class="result-card-title">
-                        <strong>Yüklenen Görsel</strong>
-                        <span>Preview</span>
+                @* Sol: Görsel *@
+                <div class="col-lg-5">
+                    <div class="result-image-card">
+                        <div class="result-card-title"><strong>Yüklenen Görsel</strong><span>Preview</span></div>
+                        <div class="heatmap-image-wrapper">
+                            <img id="mainImage" src="@Model.ImagePath" class="result-image" crossorigin="anonymous" />
+                            @if (Model.QualitySelected)
+                            {
+                                @if (!string.IsNullOrEmpty(Model.BlurType) && Model.BlurType != "sharp")
+                                {
+                                    <div class="image-badge badge-blur">@Model.BlurLabel</div>
+                                }
+                                @if (Model.TiltAngle.HasValue && Math.Abs(Model.TiltAngle.Value) >= 1.5)
+                                {
+                                    <div class="image-badge badge-tilt">⚠ @Model.TiltAngle.Value.ToString("+0.0;-0.0")° eğik</div>
+                                }
+                                @if (Model.HighlightClip > 5)
+                                {
+                                    <div class="image-badge badge-highlight">⬆ Highlight %@Model.HighlightClip.ToString("F0")</div>
+                                }
+                            }
+                        </div>
                     </div>
-                    <div class="heatmap-image-wrapper">
-                        <img src="@Model.ImagePath" class="result-image" />
-                        @* FIX: Statik sahte zone'lar kaldırıldı.
-                           Gerçek analiz rozetleri: blur tipi + eğiklik uyarısı *@
-                        @if (Model.QualitySelected)
-                        {
-                            @if (!string.IsNullOrEmpty(Model.BlurType) && Model.BlurType != "sharp")
-                            {
-                                <div class="image-badge badge-blur">@Model.BlurLabel</div>
-                            }
-                            @if (Model.TiltAngle.HasValue && Math.Abs(Model.TiltAngle.Value) >= 1.5)
-                            {
-                                <div class="image-badge badge-tilt">⚠ @Model.TiltAngle.Value.ToString("+0.0;-0.0")° eğik</div>
-                            }
-                            @if (Model.HighlightClip > 5)
-                            {
-                                <div class="image-badge badge-highlight">⬆ Highlight kırpılma %@Model.HighlightClip.ToString("F0")</div>
-                            }
-                        }
-                    </div>
+                    @if (showQuality)
+                    {
+                        <div class="result-image-card mt-3 p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="quality-score-circle flex-shrink-0">@Model.QualityScore.ToString("F0")</div>
+                                <div class="w-100">
+                                    <div class="quality-metrics-grid" style="grid-template-columns:repeat(3,1fr);gap:.4rem">
+                                        <div class="quality-metric"><span>Keskinlik</span><strong>@Model.Sharpness.ToString("F0")</strong></div>
+                                        <div class="quality-metric"><span>Gürültü</span><strong>@Model.Noise.ToString("F0")</strong></div>
+                                        <div class="quality-metric"><span>Pozlama</span><strong>@Model.Exposure.ToString("F0")</strong></div>
+                                        <div class="quality-metric"><span>Renk</span><strong>@Model.Color.ToString("F0")</strong></div>
+                                        <div class="quality-metric"><span>Estetik</span><strong>@Model.Aesthetics.ToString("F0")</strong></div>
+                                        <div class="quality-metric"><span>Teknik</span><strong>@Model.Technical.ToString("F0")</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
 
-                @if (Model.QualitySelected && Model.ImgWidth > 0)
-                {
-                    <div class="result-image-card mt-4">
-                        <div class="result-card-title"><strong>Görsel Bilgisi</strong></div>
-                        <table class="table table-sm mb-0">
-                            <tbody>
-                                <tr><td class="text-muted">Çözünürlük</td><td>@Model.ImgWidth x @Model.ImgHeight px</td></tr>
-                                <tr><td class="text-muted">Megapiksel</td><td>@Model.Megapixels.ToString("F2") MP</td></tr>
-                                @if (!string.IsNullOrEmpty(Model.ImgFormat))
-                                {
-                                    <tr><td class="text-muted">Format</td><td>@Model.ImgFormat</td></tr>
-                                }
-                                @if (!string.IsNullOrEmpty(Model.ColorMode))
-                                {
-                                    <tr><td class="text-muted">Renk Modu</td><td>@Model.ColorMode</td></tr>
-                                }
-                                @if (Model.Dpi.HasValue)
-                                {
-                                    <tr><td class="text-muted">DPI</td><td>@Model.Dpi.Value.ToString("F0")</td></tr>
-                                }
-                                @if (!string.IsNullOrEmpty(Model.ExifDatetime))
-                                {
-                                    <tr><td class="text-muted">Çekim Tarihi</td><td>@Model.ExifDatetime</td></tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-            </div>
+                @* Sağ: Sonuçlar *@
+                <div class="col-lg-7">
 
-            
-@* Sağ: Analiz Sonuçları  *@
-            <div class="col-lg-7">
-                <div class="result-summary-card">
-
-                    <div class="status-success-box mb-4">
-                        <div>
-                            <strong>@Model.StatusMessage</strong>
-                        </div>
-                        <span>Completed</span>
-                    </div>
-
-                    
-@* Real / Fake Analizi  *@
+                    @* Real / Fake *@
                     @if (Model.RealFakeSelected)
                     {
                         <div class="result-section mb-4">
@@ -108,267 +145,102 @@
                                     <h4>Real / Fake Analizi</h4>
                                     <p>@Model.Label</p>
                                 </div>
-                                <div class="score-badge">
-                                    @Model.ConfidenceScore.ToString("F1")%
-                                </div>
+                                <div class="score-badge">@Model.ConfidenceScore.ToString("F1")%</div>
                             </div>
-
-                            @* MANİPÜLASYON UYARISI *@
                             @if (Model.IsManipulated)
                             {
                                 <div class="alert alert-warning rounded-4 mt-3 d-flex align-items-center gap-2">
                                     <strong>⚠ Manipülasyon Tespit Edildi</strong>
-                                    <span class="ms-auto badge bg-warning text-dark">
-                                        Skor: @Model.ManipScore.ToString("F1")%
-                                    </span>
+                                    <span class="ms-auto badge bg-warning text-dark">Skor: @Model.ManipScore.ToString("F1")%</span>
                                 </div>
                             }
-
                             <div class="row g-3 mt-2">
-                                <div class="col-md-6">
+                                <div class="col-6">
                                     <div class="metric-card danger-metric">
-                                        <p>AI Olasılığı</p>
-                                        <h2>@Model.AiProbability.ToString("F1")%</h2>
-                                        <div class="progress">
-                                            <div class="progress-bar" style="width:@Model.AiProbability.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
-                                        </div>
+                                        <p>AI Olasılığı</p><h2>@Model.AiProbability.ToString("F1")%</h2>
+                                        <div class="progress"><div class="progress-bar" style="width:@Model.AiProbability.ToString("F0",IC)%"></div></div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-6">
                                     <div class="metric-card success-metric">
-                                        <p>Gerçek Olasılığı</p>
-                                        <h2>@Model.RealProbability.ToString("F1")%</h2>
-                                        <div class="progress">
-                                            <div class="progress-bar bg-success" style="width:@Model.RealProbability.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
-                                        </div>
+                                        <p>Gerçek Olasılığı</p><h2>@Model.RealProbability.ToString("F1")%</h2>
+                                        <div class="progress"><div class="progress-bar bg-success" style="width:@Model.RealProbability.ToString("F0",IC)%"></div></div>
                                     </div>
                                 </div>
-                                @if (Model.ManipScore > 0 && !Model.IsManipulated)
-                                {
-                                    <div class="col-12">
-                                        <div class="metric-card" style="border-left:3px solid #f59e0b">
-                                            <p style="color:#92400e">Manipülasyon Skoru</p>
-                                            <h2 style="color:#d97706">@Model.ManipScore.ToString("F1")%</h2>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-warning" style="width:@Model.ManipScore.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
                             </div>
-
                             <div class="chart-card mt-4">
-                                <h5>AI / Gerçek Dağılım Grafiği</h5>
-                                <div class="chart-wrapper">
-                                    <canvas id="resultChart"></canvas>
-                                </div>
+                                <h5>AI / Gerçek Dağılım</h5>
+                                <div class="chart-wrapper"><canvas id="resultChart"></canvas></div>
                             </div>
                         </div>
                     }
 
-                    
-@* Kalite Analizi  *@
-                    @if (Model.QualitySelected)
+                    @* Kalite özeti *@
+                    @if (showQuality)
                     {
                         <div class="result-section">
-
-                            
-@* Skor + Verdict  *@
                             <div class="result-section-header">
                                 <div>
-                                    <h4>Görsel Kalite Analizi</h4>
+                                    <h4>Görsel Kalite</h4>
                                     @if (!string.IsNullOrEmpty(Model.ProfileLabel))
                                     {
-                                        <p class="text-muted small">Profil: @Model.ProfileLabel — @Model.ProfilePass/@Model.ProfileTotal kontrol geçildi</p>
+                                        <p class="text-muted small">@Model.ProfileLabel — @Model.ProfilePass/@Model.ProfileTotal geçildi</p>
                                     }
                                 </div>
                                 <div class="quality-score-circle">@Model.QualityScore.ToString("F0")</div>
                             </div>
-
                             @if (!string.IsNullOrEmpty(Model.Verdict))
                             {
-                                <div class="alert alert-light border rounded-4 mt-3 mb-3" style="font-size:0.9rem">
-                                    @Model.Verdict
-                                </div>
+                                <div class="alert alert-light border rounded-4 mt-3 mb-3" style="font-size:.9rem">@Model.Verdict</div>
                             }
-
-                            
-@* 6 Boyutlu Radar  *@
                             <div class="chart-card mt-3 mb-4">
                                 <h5>6 Boyutlu Kalite Profili</h5>
-                                <div class="chart-wrapper" style="max-width:300px;margin:auto">
+                                <div class="chart-wrapper" style="max-width:280px;margin:auto">
                                     <canvas id="radarChart"></canvas>
                                 </div>
                             </div>
 
-                            
-@* 6D Grid  *@
-                            <div class="quality-metrics-grid mt-2">
-                                <div class="quality-metric"><span>Keskinlik</span><strong>@Model.Sharpness.ToString("F1")</strong></div>
-                                <div class="quality-metric"><span>Gürültü</span><strong>@Model.Noise.ToString("F1")</strong></div>
-                                <div class="quality-metric"><span>Pozlama</span><strong>@Model.Exposure.ToString("F1")</strong></div>
-                                <div class="quality-metric"><span>Renk</span><strong>@Model.Color.ToString("F1")</strong></div>
-                                <div class="quality-metric"><span>Estetik</span><strong>@Model.Aesthetics.ToString("F1")</strong></div>
-                                <div class="quality-metric"><span>Teknik</span><strong>@Model.Technical.ToString("F1")</strong></div>
-                            </div>
-
-                            
-@* Pozlama  *@
-                            @if (!string.IsNullOrEmpty(Model.ExposureLabel))
-                            {
-                                <h5 class="mt-4 mb-2">Pozlama Analizi</h5>
-                                <div class="quality-metrics-grid">
-                                    <div class="quality-metric"><span>Pozlama</span><strong>@Model.ExposureLabel</strong></div>
-                                    <div class="quality-metric"><span>Highlight Kırp.</span><strong>@Model.HighlightClip.ToString("F1")%</strong></div>
-                                    <div class="quality-metric"><span>Shadow Kırp.</span><strong>@Model.ShadowClip.ToString("F1")%</strong></div>
-                                    <div class="quality-metric"><span>Dinamik Aralık</span><strong>@Model.DynamicRange.ToString("F1")/100</strong></div>
-                                    <div class="quality-metric"><span>Ort. Parlaklık</span><strong>@Model.AvgBrightness.ToString("F0") <small class="text-muted">/255</small></strong></div>
-                                </div>
-                            }
-
-                            
-@* Renk & Gürültü  *@
-                            @if (!string.IsNullOrEmpty(Model.ColorCast))
-                            {
-                                <h5 class="mt-4 mb-2">Renk & Gürültü</h5>
-                                <div class="quality-metrics-grid">
-                                    <div class="quality-metric"><span>Renk Cast</span><strong>@Model.ColorCast</strong></div>
-                                    @if (Model.ColorTemperature.HasValue)
-                                    {
-                                        <div class="quality-metric"><span>Renk Sıcaklığı</span><strong>@Model.ColorTemperature.Value.ToString("F0")K</strong></div>
-                                    }
-                                    @if (Model.ColorTint.HasValue)
-                                    {
-                                        <div class="quality-metric"><span>Renk Tonu</span><strong>@Model.ColorTint.Value.ToString("F2")</strong></div>
-                                    }
-                                    @if (Model.Saturation.HasValue)
-                                    {
-                                        <div class="quality-metric"><span>Doygunluk</span><strong>@Model.Saturation.Value.ToString("F1")%</strong></div>
-                                    }
-                                    @if (!string.IsNullOrEmpty(Model.ColorNoise))
-                                    {
-                                        <div class="quality-metric"><span>Renk Gürültüsü</span><strong>@Model.ColorNoise</strong></div>
-                                    }
-                                </div>
-                            }
-
-                            
-@* Geometri & Blur  *@
-                            @if (!string.IsNullOrEmpty(Model.BlurType))
-                            {
-                                <h5 class="mt-4 mb-2">Geometri & Blur Analizi</h5>
-                                <div class="row g-3">
-                                    <div class="col-md-4">
-                                        <div class="metric-card text-center py-3">
-                                            <small class="text-muted d-block">BLUR TİPİ</small>
-                                            <strong class="text-primary">@Model.BlurLabel</strong>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="metric-card text-center py-3">
-                                            <small class="text-muted d-block">HORİZON EĞİKLİĞİ</small>
-                                            @if (Model.TiltAngle.HasValue)
-                                            {
-                                                <strong class="@(Math.Abs(Model.TiltAngle.Value) > 3 ? "text-danger" : "text-success")">
-                                                    @Model.TiltAngle.Value.ToString("+0.0;-0.0")°
-                                                </strong>
-                                                <small class="text-muted d-block">@Model.TiltLabel</small>
-                                            }
-                                            else
-                                            {
-                                                <strong>N/A</strong>
-                                            }
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="metric-card text-center py-3">
-                                            <small class="text-muted d-block">MOIRE PATTERN</small>
-                                            <strong class="@(Model.MoireScore > 35 ? "text-danger" : "text-success")">@Model.MoireLabel</strong>
-                                            <small class="text-muted d-block">Skor: @Model.MoireScore.ToString("F0")/100</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-
-                            
-@* IQA Metrik Tablosu  *@
+                            @* IQA *@
                             @if (Model.IqaMetrics.Count > 0)
                             {
-                                <h5 class="mt-4 mb-2">IQA Metrik Skorları</h5>
+                                <h6 class="info-section-title mt-3">IQA Metrik Skorları</h6>
                                 <div class="table-responsive">
                                     <table class="table table-sm rounded-4 overflow-hidden">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Metrik</th>
-                                                <th>Skor</th>
-                                                <th>Kalite</th>
-                                            </tr>
-                                        </thead>
+                                        <thead class="table-light"><tr><th>Metrik</th><th>Skor</th><th>Kalite</th></tr></thead>
                                         <tbody>
                                             @foreach (var m in Model.IqaMetrics)
                                             {
-                                                string qualityClass = "text-muted";
-                                                string qualityLabel = "—";
-                                                if (!string.IsNullOrEmpty(m.Error))
-                                                {
-                                                    qualityLabel = "Hata";
-                                                    qualityClass = "text-danger";
+                                                var qc = "text-muted"; var ql = "—";
+                                                if (!string.IsNullOrEmpty(m.Error)) { ql="Hata"; qc="text-danger"; }
+                                                else if (m.Score.HasValue) {
+                                                    bool good = m.Direction=="higher" ? m.Score.Value>=m.GoodMin : m.Score.Value<=m.GoodMax;
+                                                    ql = good?"İyi":"Zayıf"; qc = good?"text-success":"text-warning";
                                                 }
-                                                else if (m.Score.HasValue)
-                                                {
-                                                    bool good = m.Direction == "higher"
-                                                        ? m.Score.Value >= m.GoodMin
-                                                        : m.Score.Value <= m.GoodMax;
-                                                    qualityLabel = good ? "İyi" : "Zayıf";
-                                                    qualityClass = good ? "text-success" : "text-warning";
-                                                }
-                                                <tr>
-                                                    <td><strong>@m.Label</strong></td>
-                                                    <td>@(m.Score.HasValue ? m.Score.Value.ToString("F4") : "—")</td>
-                                                    <td class="@qualityClass">@qualityLabel</td>
-                                                </tr>
+                                                <tr><td><strong>@m.Label</strong></td><td>@(m.Score.HasValue?m.Score.Value.ToString("F4"):"—")</td><td class="@qc">@ql</td></tr>
                                             }
                                         </tbody>
                                     </table>
                                 </div>
                             }
 
-                            
-@* Profil Kontrol Listesi  *@
+                            @* Profil kontrol *@
                             @if (Model.Checks.Count > 0)
                             {
-                                <h5 class="mt-4 mb-2">@Model.ProfileLabel Kontrol Listesi</h5>
+                                <h6 class="info-section-title mt-3">@Model.ProfileLabel Kontrol Listesi</h6>
                                 <div class="table-responsive">
                                     <table class="table table-sm rounded-4 overflow-hidden">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th></th>
-                                                <th>Kontrol</th>
-                                                <th>Değer</th>
-                                                <th>Gerekli</th>
-                                            </tr>
-                                        </thead>
+                                        <thead class="table-light"><tr><th></th><th>Kontrol</th><th>Değer</th><th>Gerekli</th></tr></thead>
                                         <tbody>
                                             @foreach (var c in Model.Checks)
                                             {
-                                                var passClass = c.Passed == true ? "text-success"
-                                                              : c.Passed == false ? "text-danger"
-                                                              : "text-muted";
-                                                var passIcon  = c.Passed == true ? "✓"
-                                                              : c.Passed == false ? "✗"
-                                                              : "—";
-                                                <tr>
-                                                    <td class="@passClass">@passIcon</td>
-                                                    <td>@c.Name</td>
-                                                    <td class="@passClass">@c.Value</td>
-                                                    <td class="text-muted">@c.Needed</td>
-                                                </tr>
+                                                var pc = c.Passed==true?"text-success":c.Passed==false?"text-danger":"text-muted";
+                                                var pi = c.Passed==true?"✓":c.Passed==false?"✗":"—";
+                                                <tr><td class="@pc">@pi</td><td>@c.Name</td><td class="@pc">@c.Value</td><td class="text-muted">@c.Needed</td></tr>
                                             }
                                         </tbody>
                                     </table>
                                 </div>
                             }
-
                         </div>
                     }
 
@@ -376,200 +248,593 @@
             </div>
         </div>
 
-        @* PDF butonu  *@
-        <div class="text-center mt-4">
-            <button id="pdfBtn" onclick="exportPdf()" class="btn btn-outline-secondary rounded-4 px-4">
-                PDF Olarak İndir
-            </button>
-        </div>
+        @* ════════════════════════════════════════════════════
+           SEKME 2 — TEKNİK & EXİF
+           ════════════════════════════════════════════════════ *@
+        @if (showQuality)
+        {
+        <div id="tab-teknik" class="result-tab d-none">
+            <div class="row g-4">
 
-    </div>
+                @* Görsel Bilgisi *@
+                <div class="col-md-6">
+                    <h6 class="info-section-title">Görsel Bilgisi</h6>
+                    <table class="table table-sm">
+                        <tbody>
+                            @if (Model.ImgWidth > 0)
+                            {
+                                <tr><td class="text-muted">Çözünürlük</td><td><strong>@Model.ImgWidth × @Model.ImgHeight px</strong></td></tr>
+                                <tr><td class="text-muted">Megapiksel</td><td><strong>@Model.Megapixels.ToString("F2") MP</strong></td></tr>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.ImgFormat))
+                            {
+                                <tr><td class="text-muted">Format</td><td><strong>@Model.ImgFormat</strong></td></tr>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.ColorMode))
+                            {
+                                <tr><td class="text-muted">Renk Modu</td><td><strong>@Model.ColorMode</strong></td></tr>
+                            }
+                            @if (Model.Dpi.HasValue)
+                            {
+                                <tr><td class="text-muted">DPI</td><td><strong>@Model.Dpi.Value.ToString("F0")</strong></td></tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    @if (!string.IsNullOrEmpty(Model.BlurType))
+                    {
+                        <h6 class="info-section-title mt-4">Geometri &amp; Blur</h6>
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr><td class="text-muted">Blur Tipi</td><td><strong>@Model.BlurLabel</strong></td></tr>
+                                @if (Model.TiltAngle.HasValue)
+                                {
+                                    <tr>
+                                        <td class="text-muted">Eğiklik</td>
+                                        <td>
+                                            <strong class="@(Math.Abs(Model.TiltAngle.Value)>3?"text-danger":"text-success")">
+                                                @Model.TiltAngle.Value.ToString("+0.0;-0.0")°
+                                            </strong>
+                                            <span class="text-muted ms-1">@Model.TiltLabel</span>
+                                            @if (Model.TiltConfidence.HasValue)
+                                            {
+                                                <small class="text-muted ms-1">(güven: @Model.TiltConfidence.Value.ToString("F2"))</small>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td class="text-muted">Moire</td>
+                                    <td>
+                                        <strong class="@(Model.MoireScore>35?"text-danger":"text-success")">@Model.MoireLabel</strong>
+                                        <small class="text-muted ms-1">(@Model.MoireScore.ToString("F0")/100)</small>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    }
+                </div>
+
+                @* EXIF *@
+                <div class="col-md-6">
+                    @if (!string.IsNullOrEmpty(Model.ExifCamera) || !string.IsNullOrEmpty(Model.ExifDatetime) || Model.ExifIso.HasValue)
+                    {
+                        <h6 class="info-section-title">EXIF Bilgisi</h6>
+                        <table class="table table-sm">
+                            <tbody>
+                                @if (!string.IsNullOrEmpty(Model.ExifDatetime))
+                                { <tr><td class="text-muted">Çekim Tarihi</td><td><strong>@Model.ExifDatetime</strong></td></tr> }
+                                @if (!string.IsNullOrEmpty(Model.ExifCamera))
+                                { <tr><td class="text-muted">Kamera</td><td><strong>@Model.ExifCamera</strong></td></tr> }
+                                @if (!string.IsNullOrEmpty(Model.ExifLens))
+                                { <tr><td class="text-muted">Lens</td><td><strong>@Model.ExifLens</strong></td></tr> }
+                                @if (Model.ExifIso.HasValue)
+                                { <tr><td class="text-muted">ISO</td><td><strong>@Model.ExifIso</strong></td></tr> }
+                                @if (!string.IsNullOrEmpty(Model.ExifAperture))
+                                { <tr><td class="text-muted">Diyafram</td><td><strong>@Model.ExifAperture</strong></td></tr> }
+                                @if (!string.IsNullOrEmpty(Model.ExifShutter))
+                                { <tr><td class="text-muted">Enstantane</td><td><strong>@Model.ExifShutter</strong></td></tr> }
+                                @if (!string.IsNullOrEmpty(Model.ExifFocalLength))
+                                { <tr><td class="text-muted">Odak Uzunluğu</td><td><strong>@Model.ExifFocalLength</strong></td></tr> }
+                                @if (Model.ExifFlash.HasValue)
+                                { <tr><td class="text-muted">Flaş</td><td><strong>@(Model.ExifFlash.Value?"Açık":"Kapalı")</strong></td></tr> }
+                                @if (Model.ExifHasGps.HasValue)
+                                { <tr><td class="text-muted">GPS</td><td><strong>@(Model.ExifHasGps.Value?"Var":"Yok")</strong></td></tr> }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="text-muted small mt-4">EXIF verisi bulunamadı.</div>
+                    }
+                </div>
+
+            </div>
+        </div>
+        }
+
+        @* ════════════════════════════════════════════════════
+           SEKME 3 — HİSTOGRAM & RENK
+           ════════════════════════════════════════════════════ *@
+        @if (showQuality)
+        {
+        <div id="tab-histogram" class="result-tab d-none">
+
+            @* RGB Histogram *@
+            <h6 class="info-section-title">RGB Histogram</h6>
+            <div class="histogram-box mb-4">
+                <h6>Piksel Dağılımı</h6>
+                <canvas id="histogramChart" height="100"></canvas>
+                <div class="d-flex gap-3 mt-2" style="font-size:.75rem">
+                    <span><span style="display:inline-block;width:10px;height:10px;background:#ef4444;border-radius:2px"></span> Kırmızı</span>
+                    <span><span style="display:inline-block;width:10px;height:10px;background:#22c55e;border-radius:2px"></span> Yeşil</span>
+                    <span><span style="display:inline-block;width:10px;height:10px;background:#3b82f6;border-radius:2px"></span> Mavi</span>
+                </div>
+            </div>
+
+            @* Pozlama + Renk Analizi — 2 sütun *@
+            <div class="row g-3 mb-4">
+
+                @* Pozlama *@
+                @if (!string.IsNullOrEmpty(Model.ExposureLabel) || Model.HighlightClip > 0)
+                {
+                    <div class="col-md-6">
+                        <h6 class="info-section-title">Pozlama</h6>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="stat-card">
+                                    <div class="stat-label">Pozlama</div>
+                                    <div class="stat-value">@(string.IsNullOrEmpty(Model.ExposureLabel) ? "—" : Model.ExposureLabel)</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card">
+                                    <div class="stat-label">Highlight Kırpılma</div>
+                                    <div class="stat-value">@Model.HighlightClip.ToString("F1")%</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card">
+                                    <div class="stat-label">Shadow Kırpılma</div>
+                                    <div class="stat-value">@Model.ShadowClip.ToString("F1")%</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card">
+                                    <div class="stat-label">Ort. Parlaklık</div>
+                                    <div class="stat-value">@Model.AvgBrightness.ToString("F0") / 255</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card">
+                                    <div class="stat-label">Dinamik Aralık</div>
+                                    <div class="stat-value">@Model.DynamicRange.ToString("F1") / 100</div>
+                                </div>
+                            </div>
+                            @if (Model.ContrastRms.HasValue)
+                            {
+                                <div class="col-6">
+                                    <div class="stat-card">
+                                        <div class="stat-label">RMS Kontrast</div>
+                                        <div class="stat-value">@Model.ContrastRms.Value.ToString("F1")</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @* Renk Analizi *@
+                @if (Model.ColorTemperature.HasValue || !string.IsNullOrEmpty(Model.ColorCast) || Model.Saturation.HasValue)
+                {
+                    <div class="col-md-6">
+                        <h6 class="info-section-title">Renk Analizi</h6>
+                        <div class="row g-2">
+                            @if (Model.ColorTemperature.HasValue)
+                            {
+                                <div class="col-12">
+                                    <div class="stat-card">
+                                        <div class="stat-label">Renk Sıcaklığı</div>
+                                        <div class="stat-value">
+                                            @(!string.IsNullOrEmpty(Model.ColorTemperatureLabel) ? Model.ColorTemperatureLabel + ", " : "")nötr (@Model.ColorTemperature.Value.ToString("F0")K)
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.ColorCast))
+                            {
+                                <div class="col-12">
+                                    <div class="stat-card">
+                                        <div class="stat-label">Renk Tonu</div>
+                                        <div class="stat-value">
+                                            @Model.ColorCast
+                                            @if (Model.CastStrength.HasValue)
+                                            { <small class="text-muted">(güç: @Model.CastStrength.Value.ToString("F2"))</small> }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.Saturation.HasValue)
+                            {
+                                <div class="col-6">
+                                    <div class="stat-card">
+                                        <div class="stat-label">Doygunluk</div>
+                                        <div class="stat-value">@Model.Saturation.Value.ToString("F1")%</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.ColorTint.HasValue)
+                            {
+                                <div class="col-6">
+                                    <div class="stat-card">
+                                        <div class="stat-label">Grey World Sapması</div>
+                                        <div class="stat-value">@Model.ColorTint.Value.ToString("F1")</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.ColorNoise))
+                            {
+                                <div class="col-6">
+                                    <div class="stat-card">
+                                        <div class="stat-label">Renk Gürültüsü</div>
+                                        <div class="stat-value">@Model.ColorNoise</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.ColorNoiseSeverity))
+                            {
+                                <div class="col-6">
+                                    <div class="stat-card">
+                                        <div class="stat-label">Kroma Gürültüsü</div>
+                                        <div class="stat-value">@Model.ColorNoiseSeverity</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.LumaNoise.HasValue)
+                            {
+                                <div class="col-6">
+                                    <div class="stat-card">
+                                        <div class="stat-label">Luma / Kroma</div>
+                                        <div class="stat-value" style="font-size:.9rem">@Model.LumaNoise.Value.ToString("F2") / @(Model.ChromaNoise?.ToString("F2") ?? "—")</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.ColorNoiseDescription) && Model.ColorNoiseSeverity != "yok")
+                            {
+                                <div class="col-12">
+                                    <div class="stat-card">
+                                        <div class="stat-label">Gürültü Açıklaması</div>
+                                        <div class="stat-value" style="font-size:.85rem;font-weight:500;color:#374151">@Model.ColorNoiseDescription</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+            </div>
+
+            @* Baskın Renkler *@
+            <h6 class="info-section-title">Baskın Renkler</h6>
+            <div id="dominantColorsRow" class="color-swatches mb-2">
+                <span class="text-muted small">Hesaplanıyor…</span>
+            </div>
+
+        </div>
+        }
+
+        @* ════════════════════════════════════════════════════
+           SEKME 4 — KESKİNLİK HARİTASI
+           ════════════════════════════════════════════════════ *@
+        @if (hasHeatmapTab)
+        {
+        <div id="tab-heatmap" class="result-tab d-none">
+
+            <h6 class="info-section-title">Bölgesel Keskinlik Haritası</h6>
+
+            <div class="position-relative mb-3" style="border-radius:10px;overflow:hidden;background:#000">
+                <canvas id="sharpOverlayCanvas" class="heatmap-overlay-canvas"></canvas>
+            </div>
+
+            @* Lejant *@
+            <div class="d-flex gap-3 mb-4" style="font-size:.8rem">
+                <span><span style="display:inline-block;width:12px;height:12px;background:rgba(34,197,94,.7);border-radius:3px;margin-right:4px"></span>Keskin</span>
+                <span><span style="display:inline-block;width:12px;height:12px;background:rgba(251,146,60,.7);border-radius:3px;margin-right:4px"></span>Orta</span>
+                <span><span style="display:inline-block;width:12px;height:12px;background:rgba(239,68,68,.7);border-radius:3px;margin-right:4px"></span>Yumuşak</span>
+            </div>
+
+            @* Özet kartlar *@
+            <h6 class="info-section-title">Özet</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-6">
+                    <div class="stat-card">
+                        <div class="stat-label">Global Keskinlik Skoru</div>
+                        <div class="stat-value">@Model.SharpnessGlobal.ToString("F0")</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stat-card">
+                        <div class="stat-label">En Keskin Bölge</div>
+                        <div class="stat-value">
+                            @(Model.SharpestRow >= 0 ? $"Satır {Model.SharpestRow+1}, Sütun {Model.SharpestCol+1}" : "—")
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stat-card">
+                        <div class="stat-label">En Yumuşak Bölge</div>
+                        <div class="stat-value">
+                            @(Model.SoftestRow >= 0 ? $"Satır {Model.SoftestRow+1}, Sütun {Model.SoftestCol+1}" : "—")
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stat-card">
+                        <div class="stat-label">Grid Boyutu</div>
+                        <div class="stat-value">@Model.SharpnessRows × @Model.SharpnessCols</div>
+                    </div>
+                </div>
+            </div>
+
+            @* Highlight haritası *@
+            @if (Model.HighlightGrid != null && Model.HighlightGrid.Count > 0)
+            {
+                <h6 class="info-section-title">Highlight (Aşırı Pozlama) Haritası</h6>
+                <div class="position-relative mb-3" style="border-radius:10px;overflow:hidden;background:#000">
+                    <canvas id="hiOverlayCanvas" class="heatmap-overlay-canvas"></canvas>
+                </div>
+                <div class="d-flex gap-3 mb-4" style="font-size:.8rem">
+                    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(34,197,94,.7);border-radius:3px;margin-right:4px"></span>Normal</span>
+                    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(251,146,60,.6);border-radius:3px;margin-right:4px"></span>Yüksek</span>
+                    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(239,68,68,.75);border-radius:3px;margin-right:4px"></span>Kritik</span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-card">
+                            <div class="stat-label">Global Highlight %</div>
+                            <div class="stat-value">@Model.HighlightGlobalPct.ToString("F1")%</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card">
+                            <div class="stat-label">En Kötü Hücre %</div>
+                            <div class="stat-value">@Model.HighlightWorstPct.ToString("F1")%</div>
+                        </div>
+                    </div>
+                    @if (Model.HighlightWorstRow >= 0)
+                    {
+                        <div class="col-6">
+                            <div class="stat-card">
+                                <div class="stat-label">En Kötü Bölge</div>
+                                <div class="stat-value">Satır @(Model.HighlightWorstRow+1), Sütun @(Model.HighlightWorstCol+1)</div>
+                            </div>
+                        </div>
+                    }
+                    <div class="col-6">
+                        <div class="stat-card">
+                            <div class="stat-label">Kritik Bölge</div>
+                            <div class="stat-value @(Model.HighlightHasCritical ? "text-danger" : "text-success")">
+                                @(Model.HighlightHasCritical ? "Var ⚠" : "Yok ✓")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+        }
+
+    </div>@* /result-summary-card *@
+
+    @* ── Rapor butonları ─────────────────────────────────── *@
+    @if (string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="text-center mt-4 d-flex gap-2 justify-content-center flex-wrap">
+            <button id="pdfBtn" onclick="exportTrueFramePdf('pdfBtn')" class="btn btn-outline-secondary rounded-4 px-4">PDF İndir</button>
+            @if (Model.SavedId > 0)
+            {
+                <a asp-controller="Analysis" asp-action="Report" asp-route-id="@Model.SavedId"
+                   target="_blank" class="btn btn-outline-primary rounded-4 px-4">HTML Rapor Aç</a>
+            }
+        </div>
+    }
+
+</div>
 </section>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+@await Html.PartialAsync("_PdfReport", Model)
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// ── Sekme geçişi ────────────────────────────────────────
+const tabBtns = document.querySelectorAll('[data-tab]');
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.result-tab').forEach(t => t.classList.add('d-none'));
+        btn.classList.add('active');
+        const pane = document.getElementById('tab-' + btn.dataset.tab);
+        if (pane) pane.classList.remove('d-none');
+        onTabShow(btn.dataset.tab);
+    });
+});
+
+const img = document.getElementById('mainImage');
+let chartsInit = {};
+
+function onTabShow(tab) {
+    if (chartsInit[tab]) return;
+    chartsInit[tab] = true;
+    if (tab === 'histogram') initHistogramTab();
+    if (tab === 'heatmap')   initHeatmapTab();
+}
+
+// ── Doughnut chart ──────────────────────────────────────
 @if (Model.RealFakeSelected)
 {
-    <script>
+    <text>
+    (function() {
         const ctx = document.getElementById('resultChart');
-        if (ctx) {
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['AI Olasılığı', 'Gerçek Olasılığı'],
-                    datasets: [{
-                        data: [@Model.AiProbability.ToString("F2", System.Globalization.CultureInfo.InvariantCulture), @Model.RealProbability.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)],
-                        backgroundColor: ['#2563eb', '#16a34a'],
-                        borderWidth: 0
-                    }]
-                },
-                options: { cutout: '68%', plugins: { legend: { position: 'bottom' } } }
-            });
-        }
-    </script>
+        if (!ctx) return;
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['AI Olasılığı', 'Gerçek Olasılığı'],
+                datasets: [{ data: [@Model.AiProbability.ToString("F2",IC), @Model.RealProbability.ToString("F2",IC)],
+                    backgroundColor: ['#2563eb','#16a34a'], borderWidth:0 }]
+            },
+            options: { cutout:'68%', plugins:{ legend:{ position:'bottom' } } }
+        });
+    })();
+    </text>
 }
 
-@if (Model.QualitySelected)
+// ── Radar chart ─────────────────────────────────────────
+@if (showQuality)
 {
-    <script>
-        const rctx = document.getElementById('radarChart');
-        if (rctx) {
-            new Chart(rctx, {
-                type: 'radar',
-                data: {
-                    labels: ['Keskinlik', 'Gürültü', 'Pozlama', 'Renk', 'Estetik', 'Teknik'],
-                    datasets: [{
-                        label: 'Kalite Profili',
-                        data: [
-                            @Model.Sharpness.ToString("F1", System.Globalization.CultureInfo.InvariantCulture),
-                            @Model.Noise.ToString("F1", System.Globalization.CultureInfo.InvariantCulture),
-                            @Model.Exposure.ToString("F1", System.Globalization.CultureInfo.InvariantCulture),
-                            @Model.Color.ToString("F1", System.Globalization.CultureInfo.InvariantCulture),
-                            @Model.Aesthetics.ToString("F1", System.Globalization.CultureInfo.InvariantCulture),
-                            @Model.Technical.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)
-                        ],
-                        backgroundColor: 'rgba(37,99,235,0.15)',
-                        borderColor: '#2563eb',
-                        pointBackgroundColor: '#2563eb'
-                    }]
-                },
-                options: {
-                    scales: { r: { min: 0, max: 100, ticks: { display: false } } },
-                    plugins: { legend: { display: false } }
+    <text>
+    (function() {
+        const ctx = document.getElementById('radarChart');
+        if (!ctx) return;
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['Keskinlik','Gürültü','Pozlama','Renk','Estetik','Teknik'],
+                datasets: [{ label:'Kalite',
+                    data: [@Model.Sharpness.ToString("F1",IC),@Model.Noise.ToString("F1",IC),@Model.Exposure.ToString("F1",IC),
+                           @Model.Color.ToString("F1",IC),@Model.Aesthetics.ToString("F1",IC),@Model.Technical.ToString("F1",IC)],
+                    backgroundColor:'rgba(37,99,235,.15)', borderColor:'#2563eb', pointBackgroundColor:'#2563eb' }]
+            },
+            options: { scales:{ r:{ min:0,max:100,ticks:{display:false} } }, plugins:{ legend:{display:false} } }
+        });
+    })();
+    </text>
+}
+
+// ── Histogram + dominant colors (lazy) ──────────────────
+function initHistogramTab() {
+    const mainImg = document.getElementById('mainImage');
+    function run(imgEl) {
+        try {
+            const sz = 200;
+            const c = document.createElement('canvas');
+            c.width = c.height = sz;
+            const cx = c.getContext('2d');
+            cx.drawImage(imgEl, 0, 0, sz, sz);
+            const px = cx.getImageData(0, 0, sz, sz).data;
+
+            const R = new Array(256).fill(0), G = new Array(256).fill(0), B = new Array(256).fill(0);
+            for (let i = 0; i < px.length; i += 4) { R[px[i]]++; G[px[i+1]]++; B[px[i+2]]++; }
+
+            const mx = Math.max(...R,...G,...B);
+            const labels = Array.from({length:256},(_,i)=>i);
+
+            const hCtx = document.getElementById('histogramChart');
+            if (hCtx) {
+                new Chart(hCtx, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [
+                            { data: R.map(v=>v/mx*100), borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,.12)', fill:true, tension:.4, pointRadius:0, borderWidth:1.5 },
+                            { data: G.map(v=>v/mx*100), borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,.12)',  fill:true, tension:.4, pointRadius:0, borderWidth:1.5 },
+                            { data: B.map(v=>v/mx*100), borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,.12)', fill:true, tension:.4, pointRadius:0, borderWidth:1.5 },
+                        ]
+                    },
+                    options: {
+                        animation:false,
+                        scales: { x:{display:false}, y:{display:false, min:0} },
+                        plugins:{ legend:{display:false} }
+                    }
+                });
+            }
+
+            // Baskın renkler
+            const buckets = {};
+            for (let i = 0; i < px.length; i += 4) {
+                if (px[i+3] < 128) continue;
+                const key = `${Math.round(px[i]/32)*32},${Math.round(px[i+1]/32)*32},${Math.round(px[i+2]/32)*32}`;
+                buckets[key] = (buckets[key]||0) + 1;
+            }
+            const top = Object.entries(buckets).sort((a,b)=>b[1]-a[1]).slice(0,6);
+            const row = document.getElementById('dominantColorsRow');
+            if (row) {
+                row.innerHTML = top.map(([k]) =>
+                    `<div class="color-swatch" style="background:rgb(${k})" title="rgb(${k})"></div>`
+                ).join('');
+            }
+        } catch(e) {
+            console.log('Histogram hesaplanamadı:', e.message);
+        }
+    }
+
+    if (mainImg && mainImg.complete && mainImg.naturalWidth > 0) run(mainImg);
+    else if (mainImg) mainImg.addEventListener('load', () => run(mainImg), {once:true});
+}
+
+// ── Overlay heatmap (lazy) ──────────────────────────────
+@if (hasHeatmapTab)
+{
+    <text>
+    const sharpGrid = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SharpnessGrid));
+    const hiGrid    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.HighlightGrid ?? new System.Collections.Generic.List<System.Collections.Generic.List<double>>()));
+
+    function drawOverlay(canvasId, imgEl, grid, colorFn) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas || !grid || grid.length === 0) return;
+        const rows = grid.length, cols = grid[0].length;
+
+        function render() {
+            const maxW = Math.min(canvas.parentElement.clientWidth || 800, 480);
+            const maxH = 300;
+            const aspectRatio = imgEl.naturalHeight / imgEl.naturalWidth;
+            canvas.width  = Math.min(maxW, imgEl.naturalWidth);
+            canvas.height = Math.round(canvas.width * aspectRatio);
+            if (canvas.height > maxH) { canvas.height = maxH; canvas.width = Math.round(maxH / aspectRatio); }
+            canvas.style.width  = canvas.width  + 'px';
+            canvas.style.height = canvas.height + 'px';
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(imgEl, 0, 0, canvas.width, canvas.height);
+
+            const cw = canvas.width / cols, ch = canvas.height / rows;
+            for (let r = 0; r !== rows; r++) {
+                for (let c = 0; c !== cols; c++) {
+                    ctx.fillStyle = colorFn(grid[r][c]);
+                    ctx.fillRect(c*cw, r*ch, cw, ch);
                 }
-            });
+            }
         }
-    </script>
+
+        if (imgEl.complete && imgEl.naturalWidth > 0) render();
+        else imgEl.addEventListener('load', render, {once:true});
+    }
+
+    function initHeatmapTab() {
+        const mainImg = document.getElementById('mainImage');
+        if (!mainImg) return;
+
+        drawOverlay('sharpOverlayCanvas', mainImg, sharpGrid, v => {
+            if (v >= 70) return 'rgba(34,197,94,.5)';
+            if (v >= 40) return 'rgba(251,146,60,.5)';
+            return 'rgba(239,68,68,.55)';
+        });
+
+        drawOverlay('hiOverlayCanvas', mainImg, hiGrid, v => {
+            if (v >= 70) return 'rgba(239,68,68,.6)';
+            if (v >= 30) return 'rgba(251,146,60,.5)';
+            return 'rgba(34,197,94,.35)';
+        });
+    }
+    </text>
+}
+else
+{
+    <text>function initHeatmapTab(){}</text>
 }
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-async function exportPdf() {
-    const btn = document.getElementById('pdfBtn');
-    btn.disabled = true;
-    btn.textContent = 'Hazırlanıyor...';
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const W = 210, M = 16;
-    let y = 20;
-
-    // ── Header
-    doc.setFillColor(37, 99, 235);
-    doc.rect(0, 0, W, 14, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
-    doc.text('TrueFrame — Analiz Raporu', M, 9.5);
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(200, 220, 255);
-    const now = new Date().toLocaleDateString('tr-TR', {year:'numeric',month:'long',day:'numeric'});
-    doc.text(now, W - M, 9.5, { align: 'right' });
-
-    y = 22;
-
-    function sectionBox(color, h) {
-        doc.setFillColor(...color);
-        doc.roundedRect(M, y, W - M * 2, h, 3, 3, 'F');
-    }
-    function heading(txt) {
-        doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(15,23,42);
-        doc.text(txt, M + 4, y + 7); y += 10;
-    }
-    function line(txt) {
-        doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105);
-        doc.text(txt, M + 4, y); y += 6;
-    }
-
-    @if (Model.RealFakeSelected && Model.AiProbability > 0)
-    {
-        <text>
-        sectionBox([239,246,255], 34);
-        heading('Real / Fake Analizi');
-        line('Tespit: @Model.Label   |   Güven: @Model.ConfidenceScore.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%');
-        line('AI Olasılığı: @Model.AiProbability.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%   |   Gerçek Olasılığı: @Model.RealProbability.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%');
-        @if (Model.IsManipulated) { <text>line('⚠ Manüpläsyon Tespit Edildi — Skor: @Model.ManipScore.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%');</text> }
-        y += 6;
-        </text>
-    }
-
-    @if (Model.QualitySelected && Model.QualityScore > 0)
-    {
-        <text>
-        if (y > 220) { doc.addPage(); y = 20; }
-        sectionBox([240,253,244], 52);
-        heading('Görsel Kalite Analizi');
-        line('Genel Skor: @Model.QualityScore.ToString("F0", System.Globalization.CultureInfo.InvariantCulture) / 100');
-        @if (!string.IsNullOrEmpty(Model.ProfileLabel))
-        {
-            <text>line('Profil: @Model.ProfileLabel — @Model.ProfilePass/@Model.ProfileTotal kontrol geçildi');</text>
-        }
-        // 6D grid — 2 sütun
-        const dims6 = [
-            'Keskinlik: @Model.Sharpness.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)',
-            'Gürültü: @Model.Noise.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)',
-            'Pozlama: @Model.Exposure.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)',
-            'Renk: @Model.Color.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)',
-            'Estetik: @Model.Aesthetics.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)',
-            'Teknik: @Model.Technical.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)'
-        ];
-        doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105);
-        dims6.forEach((d,i)=>{ doc.text(d, i>2 ? M+4+90 : M+4, y+(i%3)*6); });
-        y += 22;
-        </text>
-    }
-
-    @if (!string.IsNullOrEmpty(Model.Verdict))
-    {
-        <text>
-        if (y > 250) { doc.addPage(); y = 20; }
-        doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.setTextColor(100,116,139);
-        const vlines = doc.splitTextToSize('@Html.Raw(Model.Verdict?.Replace("'","\\'").Replace("\n"," ").Replace("\"","\\\""))', W-M*2-4);
-        doc.text(vlines, M+2, y); y += vlines.length*5 + 4;
-        </text>
-    }
-
-    @if (Model.IqaMetrics.Count > 0)
-    {
-        <text>
-        if (y > 220) { doc.addPage(); y = 20; }
-        doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(15,23,42);
-        doc.text('IQA Metrik Skorları', M, y); y += 6;
-        doc.setFillColor(226,232,240); doc.rect(M, y, W-M*2, 6, 'F');
-        doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(71,85,105);
-        doc.text('Metrik', M+2, y+4);
-        doc.text('Skor', M+80, y+4);
-        doc.text('Kalite', M+120, y+4);
-        y += 7;
-        </text>
-        @foreach (var m in Model.IqaMetrics)
-        {
-            bool good = m.Direction == "higher" ? (m.Score ?? 0) >= m.GoodMin : (m.Score ?? 0) <= m.GoodMax;
-            string ql  = string.IsNullOrEmpty(m.Error) ? (good ? "İyi" : "Zayıf") : "Hata";
-            int[] qRgb = string.IsNullOrEmpty(m.Error) ? (good ? new[]{22,163,74} : new[]{202,138,4}) : new[]{220,38,38};
-            string sc  = m.Score.HasValue ? m.Score.Value.ToString("F4", System.Globalization.CultureInfo.InvariantCulture) : "-";
-            <text>
-            if (y > 270) { doc.addPage(); y = 20; }
-            doc.setFont('helvetica','normal'); doc.setTextColor(15,23,42);
-            doc.text('@m.Label', M+2, y+4);
-            doc.text('@sc', M+80, y+4);
-            doc.setTextColor(@(qRgb[0]),@(qRgb[1]),@(qRgb[2]));
-            doc.text('@ql', M+120, y+4);
-            y += 6;
-            </text>
-        }
-    }
-
-    // ── Footer
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let p = 1; p <= pageCount; p++) {
-        doc.setPage(p);
-        doc.setFillColor(37,99,235); doc.rect(0,290,W,7,'F');
-        doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont('helvetica','normal');
-        doc.text('TrueFrame AI Görsel Doğrulama Platformu', M, 295);
-        doc.text('Sayfa ' + p + ' / ' + pageCount, W-M, 295, {align:'right'});
-    }
-
-    doc.save('trueframe-rapor-@(DateTime.Now.ToString("yyyyMMdd")).pdf');
-    btn.disabled = false;
-    btn.textContent = 'PDF Olarak İndir';
-}
+// İlk sekme zaten görünür — başlangıç chart'larını başlat
+(function() {
+    if (document.getElementById('resultChart')) {} // zaten yukarıda init edildi
+})();
 </script>

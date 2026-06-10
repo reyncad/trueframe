@@ -31,6 +31,112 @@
             <div class="alert alert-warning rounded-4 mb-4">@Model.Warning</div>
         }
 
+        @if (TempData["AccessError"] != null)
+        {
+            <div class="alert alert-warning rounded-4 mb-4">@TempData["AccessError"]</div>
+        }
+
+        @* FIX: Analiz filtreleri — backend sorgu desteğiyle birlikte eklendi *@
+        <form method="get" asp-controller="Analysis" asp-action="History" class="history-filter-card mb-4 p-3 border rounded-4 bg-light">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2 col-6">
+                    <label class="form-label small text-muted mb-1">Tespit Sonucu</label>
+                    <select name="result" class="form-select form-select-sm rounded-3">
+                        @{
+                            var resultOpts = new (string Val, string Lbl)[] {
+                                ("", "Tümü"), ("ai", "Yapay (AI)"), ("real", "Gerçek"),
+                                ("manip", "Manipüle"), ("uncertain", "Belirsiz") };
+                        }
+                        @foreach (var o in resultOpts)
+                        {
+                            if (Model.FilterResult == o.Val || (string.IsNullOrEmpty(Model.FilterResult) && o.Val == ""))
+                            {
+                                <option value="@o.Val" selected>@o.Lbl</option>
+                            }
+                            else
+                            {
+                                <option value="@o.Val">@o.Lbl</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 col-6">
+                    <label class="form-label small text-muted mb-1">Kalite Skoru</label>
+                    <div class="d-flex gap-1">
+                        <input type="number" name="minScore" min="0" max="100" placeholder="Min"
+                               value="@Model.FilterMinScore?.ToString(System.Globalization.CultureInfo.InvariantCulture)" class="form-control form-control-sm rounded-3" />
+                        <input type="number" name="maxScore" min="0" max="100" placeholder="Maks"
+                               value="@Model.FilterMaxScore?.ToString(System.Globalization.CultureInfo.InvariantCulture)" class="form-control form-control-sm rounded-3" />
+                    </div>
+                </div>
+                <div class="col-md-2 col-6">
+                    <label class="form-label small text-muted mb-1">Başlangıç</label>
+                    <input type="date" name="dateFrom" value="@Model.FilterDateFrom" class="form-control form-control-sm rounded-3" />
+                </div>
+                <div class="col-md-2 col-6">
+                    <label class="form-label small text-muted mb-1">Bitiş</label>
+                    <input type="date" name="dateTo" value="@Model.FilterDateTo" class="form-control form-control-sm rounded-3" />
+                </div>
+                <div class="col-md-1 col-6">
+                    <label class="form-label small text-muted mb-1">Profil</label>
+                    <select name="profile" class="form-select form-select-sm rounded-3">
+                        @{
+                            var profOpts = new (string Val, string Lbl)[] {
+                                ("", "Tümü"), ("none", "Genel"), ("web", "Web"),
+                                ("social", "Sosyal"), ("print", "Baskı"), ("news", "Haber") };
+                        }
+                        @foreach (var o in profOpts)
+                        {
+                            if (Model.FilterProfile == o.Val || (string.IsNullOrEmpty(Model.FilterProfile) && o.Val == ""))
+                            {
+                                <option value="@o.Val" selected>@o.Lbl</option>
+                            }
+                            else
+                            {
+                                <option value="@o.Val">@o.Lbl</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-1 col-6">
+                    <label class="form-label small text-muted mb-1">Tür</label>
+                    <select name="fileType" class="form-select form-select-sm rounded-3">
+                        @{
+                            var typeOpts = new[] { "", "jpg", "png", "webp", "tiff", "bmp" };
+                        }
+                        @foreach (var t in typeOpts)
+                        {
+                            if (Model.FilterFileType == t || (string.IsNullOrEmpty(Model.FilterFileType) && t == ""))
+                            {
+                                <option value="@t" selected>@(t == "" ? "Tümü" : t.ToUpper())</option>
+                            }
+                            else
+                            {
+                                <option value="@t">@t.ToUpper()</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 col-6">
+                    <label class="form-label small text-muted mb-1">Dosya Adı</label>
+                    <input type="text" name="q" value="@Model.FilterQuery" maxlength="100"
+                           placeholder="Ara…" class="form-control form-control-sm rounded-3" />
+                </div>
+                <div class="col-md-1 col-12 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary btn-sm rounded-3 flex-fill">Filtrele</button>
+                    @if (Model.HasActiveFilters)
+                    {
+                        <a asp-controller="Analysis" asp-action="History" class="btn btn-outline-secondary btn-sm rounded-3" title="Filtreleri temizle">✕</a>
+                    }
+                </div>
+            </div>
+        </form>
+
+        @if (Model.HasActiveFilters)
+        {
+            <p class="text-muted small mb-3">@Model.Items.Count kayıt bulundu (filtreli görünüm).</p>
+        }
+
         @* Kayıt listesi *@
         @if (Model.Items.Count > 0)
         {
@@ -88,15 +194,40 @@
                                 }
                             </div>
 
-                            <a asp-controller="Analysis"
-                               asp-action="Details"
-                               asp-route-id="@item.Id"
-                               class="btn btn-outline-primary rounded-4 w-100 mt-4">
-                                Detay Gör
-                            </a>
+                            <div class="d-flex gap-2 mt-4 flex-wrap">
+                                <a asp-controller="Analysis"
+                                   asp-action="Details"
+                                   asp-route-id="@item.Id"
+                                   class="btn btn-outline-primary rounded-4 flex-fill">
+                                    Detay Gör
+                                </a>
+                                <a asp-controller="Analysis"
+                                   asp-action="Report"
+                                   asp-route-id="@item.Id"
+                                   target="_blank"
+                                   class="btn btn-outline-secondary rounded-4"
+                                   title="HTML raporu yeni sekmede aç">
+                                    HTML Rapor
+                                </a>
+                                @* FIX: silme özelliği backend'de vardı ama hiç bağlanmamıştı *@
+                                <form asp-controller="Analysis" asp-action="Delete" asp-route-id="@item.Id"
+                                      method="post" onsubmit="return confirm('Bu kayıt kalıcı olarak silinecek. Emin misiniz?');">
+                                    <button type="submit" class="btn btn-outline-danger rounded-4" title="Kaydı sil">Sil</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 }
+            </div>
+        }
+        else if (string.IsNullOrEmpty(Model.Error) && Model.HasActiveFilters)
+        {
+            <div class="empty-history-box mt-5">
+                <h5>Filtreye uyan kayıt bulunamadı</h5>
+                <p>Filtre ölçütlerini değiştirin veya temizleyin.</p>
+                <a asp-controller="Analysis" asp-action="History" class="btn btn-outline-primary rounded-4 mt-3">
+                    Filtreleri Temizle
+                </a>
             </div>
         }
         else if (string.IsNullOrEmpty(Model.Error))

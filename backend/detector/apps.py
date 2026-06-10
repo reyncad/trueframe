@@ -12,6 +12,15 @@ Model önyükleme (warmup):
   - Gunicorn (production): RUN_MAIN set edilmez. --preload kullanıldığında
     warmup master process'te bir kez çalışır; worker'lar fork ile devralır.
     --preload kullanılmazsa warmup atlanır, lazy load devreye girer.
+
+  ⚠ BİLİNEN SINIRLILIK — Gunicorn --preload + çok worker:
+    ready() master process'te warmup thread'ini başlatır; _warmup_done = True
+    set edilir ANCAK thread henüz warmup_done.set() çağırmamış olabilir.
+    Worker'lar fork ile bu state'i kopyalar → her worker'ın warmup_done Event'i
+    hiçbir zaman set olmaz → analyze ilk istekte 60 s timeout'a düşer (lazy load).
+    Pratik etki: ilk N istek ~60 s bekler, sonrası normal.
+    Gerçek düzeltme: --preload modunda warmup'ı senkron yap veya
+    worker post-fork hook'unda (gunicorn post_fork) warmup_done.set() çağır.
 """
 import gc
 import os

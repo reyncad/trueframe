@@ -56,6 +56,14 @@ namespace TrueFrameUI.Models
 
         // EXIF
         public string? ExifDatetime { get; set; }
+        public string? ExifCamera { get; set; }
+        public string? ExifLens { get; set; }
+        public int?    ExifIso { get; set; }
+        public string? ExifAperture { get; set; }
+        public string? ExifShutter { get; set; }
+        public string? ExifFocalLength { get; set; }
+        public bool?   ExifFlash { get; set; }
+        public bool?   ExifHasGps { get; set; }
 
         // Pozlama
         public string? ExposureLabel { get; set; }
@@ -63,13 +71,22 @@ namespace TrueFrameUI.Models
         public double ShadowClip { get; set; }
         public double DynamicRange { get; set; }
         public double AvgBrightness { get; set; }
+        public double? ContrastRms { get; set; }
 
         // Renk & Gürültü
         public string? ColorCast { get; set; }
+        public double? CastStrength { get; set; }
         public double? ColorTemperature { get; set; }
+        public string? ColorTemperatureLabel { get; set; }
         public double? ColorTint { get; set; }
         public double? Saturation { get; set; }
         public string? ColorNoise { get; set; }
+
+        // Kroma gürültü detayı (color_noise modülü)
+        public double? LumaNoise { get; set; }
+        public double? ChromaNoise { get; set; }
+        public string? ColorNoiseSeverity { get; set; }
+        public string? ColorNoiseDescription { get; set; }
 
         // Geometri & Blur
         public string? BlurType { get; set; }
@@ -86,11 +103,33 @@ namespace TrueFrameUI.Models
         // Profil kontrol listesi
         public List<CheckItem> Checks { get; set; } = new();
 
+        // Bölgesel haritalar (grid: satır × sütun, değerler 0-100)
+        public List<List<double>>? SharpnessGrid     { get; set; }
+        public int                 SharpnessRows     { get; set; }
+        public int                 SharpnessCols     { get; set; }
+        public double              SharpnessGlobal   { get; set; }
+        public int                 SharpestRow       { get; set; } = -1;
+        public int                 SharpestCol       { get; set; } = -1;
+        public int                 SoftestRow        { get; set; } = -1;
+        public int                 SoftestCol        { get; set; } = -1;
+
+        public List<List<double>>? HighlightGrid        { get; set; }
+        public int                 HighlightRows         { get; set; }
+        public int                 HighlightCols         { get; set; }
+        public bool                HighlightHasCritical  { get; set; }
+        public double              HighlightWorstPct     { get; set; }
+        public double              HighlightGlobalPct    { get; set; }
+        public int                 HighlightWorstRow     { get; set; } = -1;
+        public int                 HighlightWorstCol     { get; set; } = -1;
+
         public string? StatusMessage  { get; set; }
         public string? ErrorMessage   { get; set; }
 
         // Geçmiş / Details sayfası için ek alanlar
         public string? CreatedAt    { get; set; }
         public string? OriginalName { get; set; }
+
+        // Yeni analiz sonrası DB'de kaydedilen satır ID'si — HTML Rapor için
+        public int SavedId { get; set; }
     }
 }
