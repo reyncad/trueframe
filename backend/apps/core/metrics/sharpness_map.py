@@ -52,6 +52,8 @@ def compute_sharpness_map(pil_img: Image.Image) -> dict:
     flat = [v for row in raw_grid for v in row]
     global_score = round(float(np.mean(flat)), 2)
     max_val = max(flat) if flat else 1.0
+    if max_val == 0:
+        max_val = 1.0
 
     grid_norm = [
         [round(v / max_val * 100, 1) for v in row]

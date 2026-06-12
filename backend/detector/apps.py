@@ -52,6 +52,9 @@ def _is_worker_process() -> bool:
     import sys
     if any("gunicorn" in arg.lower() for arg in sys.argv[:2]):
         return True
+    # runserver --noreload: tek process, reloader yok, worker sayılır
+    if "--noreload" in sys.argv:
+        return True
     return False
 
 

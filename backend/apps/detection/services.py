@@ -95,9 +95,9 @@ class DetectionService:
 
         # --- v1 fallback ---
         if self._mode is None:
-            from transformers import AutoFeatureExtractor, AutoModelForImageClassification
+            from transformers import AutoImageProcessor, AutoModelForImageClassification
             src = str(MODEL_V1_DIR) if MODEL_V1_DIR.exists() else FALLBACK_MODEL
-            self._v1_extractor = AutoFeatureExtractor.from_pretrained(src)
+            self._v1_extractor = AutoImageProcessor.from_pretrained(src)
             self._v1_model = AutoModelForImageClassification.from_pretrained(src)
             self._v1_model.eval()
             self._mode = "v1"
@@ -109,8 +109,8 @@ class DetectionService:
             print("[TrueFrame] Manipülasyon dedektörü devre dışı (DISABLE_MANIP_DETECTOR=true)")
         else:
             try:
-                from transformers import AutoFeatureExtractor, AutoModelForImageClassification
-                self._manip_extractor = AutoFeatureExtractor.from_pretrained(MANIP_MODEL)
+                from transformers import AutoImageProcessor, AutoModelForImageClassification
+                self._manip_extractor = AutoImageProcessor.from_pretrained(MANIP_MODEL)
                 self._manip_model = AutoModelForImageClassification.from_pretrained(MANIP_MODEL)
                 self._manip_model.eval()
                 print("[TrueFrame] Manipülasyon dedektörü yüklendi")

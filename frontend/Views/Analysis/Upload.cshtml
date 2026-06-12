@@ -175,7 +175,7 @@
 
                         </div>
 
-                        <div class="analysis-options mt-3">
+                        <div class="analysis-options mt-3" id="profileSection">
 
                             <h5>Yayın Profili</h5>
                             <p>Kalite standartlarını kullanım amacına göre değerlendirmek için bir profil seç.</p>
@@ -390,9 +390,19 @@
         });
 
         // Analiz türü seçenekleri (checkbox)
+        const realFakeCb     = document.querySelector('input[name="realFakeSelected"]');
+        const qualityCb      = document.querySelector('input[name="qualitySelected"]');
+        const profileSection = document.getElementById('profileSection');
+
+        function updateProfileVisibility() {
+            const onlyRealFake = realFakeCb.checked && !qualityCb.checked;
+            profileSection.style.display = onlyRealFake ? 'none' : '';
+        }
+
         document.querySelectorAll('.analysis-option input[type="checkbox"]').forEach(function (cb) {
             cb.addEventListener('change', function () {
                 this.closest('.analysis-option').classList.toggle('selected', this.checked);
+                updateProfileVisibility();
             });
         });
     })();

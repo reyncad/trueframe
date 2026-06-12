@@ -14,6 +14,7 @@ services:
   backend:
     environment:
       DJANGO_DEBUG: "True"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,trueframe-backend"
       # Manipülasyon dedektörünü devre dışı bırak (~500 MB RAM tasarrufu).
       # Yeterli RAM varsa "false" yapılabilir.
       DISABLE_MANIP_DETECTOR: "true"
@@ -27,7 +28,7 @@ services:
       - model_cache:/app/.cache
       - backend_data:/app/data
     # Geliştirmede runserver kullan (hot reload için)
-    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    command: ["gunicorn", "trueframe.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "1", "--timeout", "300", "--worker-tmp-dir", "/tmp"]
     # Geliştirmede backend'i de dışarıya aç
     ports:
       - "8000:8000"
@@ -43,3 +44,5 @@ services:
   frontend:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      ApiUrl: "http://trueframe-backend:8000/api/analyze"
+      HistoryApiUrl: "http://trueframe-backend:8000/api/history"
