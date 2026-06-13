@@ -294,24 +294,34 @@
         const btn = document.getElementById(btnId || 'pdfBtn');
         if (btn) { btn.disabled = true; btn.textContent = 'PDF hazırlanıyor...'; }
 
-        const el = document.getElementById('pdfReport');
-        // Geçici olarak görünür yap (html2canvas ekran dışı elementi yakalayamaz)
-        const wrapper = document.getElementById('pdfReportWrapper');
-        wrapper.style.height = 'auto';
-        wrapper.style.opacity = '1';
-        wrapper.style.zIndex = '-1';
+        const source = document.getElementById('pdfReport');
+
+        // Wrapper'daki visibility sorununu bypass etmek için
+        // içeriği doğrudan body'e clone'la, z-index:-9999 ile gizle.
+        const clone = source.cloneNode(true);
+        clone.style.cssText = [
+            'position:fixed', 'top:0', 'left:0',
+            'width:720px', 'background:#ffffff', 'color:#0f172a',
+            'z-index:-9999', 'pointer-events:none', 'box-sizing:border-box'
+        ].join(';');
+        document.body.appendChild(clone);
+
+        // Tarayıcının layout'u hesaplaması için bekle
+        await new Promise(resolve => setTimeout(resolve, 350));
 
         const opt = {
             margin:      [10, 10, 14, 10],
             image:       { type: 'jpeg', quality: 0.92 },
-            html2canvas: { scale: 1.5, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false },
+            html2canvas: {
+                scale: 1.5, useCORS: true, allowTaint: true,
+                backgroundColor: '#ffffff', logging: false
+            },
             jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak:   { mode: ['css', 'legacy'], avoid: ['.pdf-block', 'tr'] }
         };
 
         try {
-            await html2pdf().set(opt).from(el).toPdf().get('pdf').then(pdf => {
-                // Sayfalama: her sayfanın altına sayfa numarası + alt bilgi
+            await html2pdf().set(opt).from(clone).toPdf().get('pdf').then(pdf => {
                 const total = pdf.internal.getNumberOfPages();
                 for (let i = 1; i <= total; i++) {
                     pdf.setPage(i);
@@ -325,8 +335,7 @@
             console.error('PDF üretim hatası:', e);
             alert('PDF üretilirken bir hata oluştu. Lütfen tekrar deneyiniz.');
         } finally {
-            wrapper.style.height = '0';
-            wrapper.style.opacity = '0';
+            document.body.removeChild(clone);
             if (btn) { btn.disabled = false; btn.textContent = 'PDF İndir'; }
         }
     }
