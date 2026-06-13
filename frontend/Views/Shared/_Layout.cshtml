@@ -6,6 +6,9 @@
 
     <title>@ViewData["Title"] - True Frame</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/TrueFrameUI.styles.css" asp-append-version="true" />
@@ -21,7 +24,7 @@
     <nav class="navbar navbar-expand-lg custom-navbar shadow-sm">
         <div class="container">
 
-            <a class="navbar-brand fw-bold text-primary" asp-controller="Home" asp-action="Index">
+            <a class="navbar-brand fw-bold" style="color:var(--text-1)!important" asp-controller="Home" asp-action="Index">
                 True Frame
             </a>
 
@@ -73,7 +76,7 @@
                         </li>
 
                         <li class="nav-item">
-                            <a class="btn btn-outline-danger rounded-4 px-3"
+                            <a class="btn btn-outline-primary rounded-4 px-3"
                                asp-controller="Auth" asp-action="Logout">
                                 Çıkış Yap
                             </a>
@@ -118,18 +121,18 @@
             <div class="row align-items-center">
 
                 <div class="col-md-6">
-                    <h5 class="fw-bold text-primary mb-2">True Frame</h5>
-                    <p class="text-muted mb-0">
+                    <h5 class="fw-bold mb-1" style="color:var(--text-1)">True Frame</h5>
+                    <p class="mb-0" style="color:var(--text-2);font-size:.9rem">
                         Yapay Zekâ Üretimi Görsel Tespiti ve Görsel Kalite Analizi Sistemi
                     </p>
                 </div>
 
                 <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                    <p class="text-muted mb-1">
-                        Beykent Üniversitesi - Yazılım Mühendisliği
+                    <p class="mb-1" style="color:var(--text-3);font-size:.85rem">
+                        Beykent Üniversitesi — Yazılım Mühendisliği
                     </p>
-                    <p class="text-muted mb-0">
-                        Emine Balıktay • Nisa Şahinoğlu • Reyyan Çadırcı
+                    <p class="mb-0" style="color:var(--text-3);font-size:.85rem">
+                        Emine Balıktay &bull; Nisa Şahinoğlu &bull; Reyyan Çadırcı
                     </p>
                 </div>
 
