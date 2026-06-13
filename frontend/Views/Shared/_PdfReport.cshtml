@@ -296,13 +296,15 @@
 
         const source = document.getElementById('pdfReport');
 
-        // Wrapper'daki visibility sorununu bypass etmek için
-        // içeriği doğrudan body'e clone'la, z-index:-9999 ile gizle.
+        // Clone'u body'in en üstüne koy.
+        // z-index POZITIF olmali — negatif z-index dark body arkaplaninin
+        // arkasinda kalir, html2canvas sadece karanlik ekrani yakalar → bos PDF.
         const clone = source.cloneNode(true);
         clone.style.cssText = [
             'position:fixed', 'top:0', 'left:0',
             'width:720px', 'background:#ffffff', 'color:#0f172a',
-            'z-index:-9999', 'pointer-events:none', 'box-sizing:border-box'
+            'z-index:99999', 'pointer-events:none', 'box-sizing:border-box',
+            'font-family:"Segoe UI",Arial,sans-serif'
         ].join(';');
         document.body.appendChild(clone);
 
@@ -314,7 +316,10 @@
             image:       { type: 'jpeg', quality: 0.92 },
             html2canvas: {
                 scale: 1.5, useCORS: true, allowTaint: true,
-                backgroundColor: '#ffffff', logging: false
+                backgroundColor: '#ffffff', logging: false,
+                foreignObjectRendering: false,
+                windowWidth: 740,
+                windowHeight: clone.scrollHeight + 100
             },
             jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak:   { mode: ['css', 'legacy'], avoid: ['.pdf-block', 'tr'] }
