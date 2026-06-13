@@ -502,7 +502,7 @@ function onTabShow(tab) {
         new Chart(ctx, {
             type: 'radar',
             data: {
-                labels: @(T.Lang == "tr"
+                labels: @Html.Raw(T.Lang == "tr"
                     ? "['Keskinlik','Gürültü','Pozlama','Renk','Estetik','Teknik']"
                     : "['Sharpness','Noise','Exposure','Color','Aesthetics','Technical']"),
                 datasets: [{ label:'@(T.Lang == "tr" ? "Kalite" : "Quality")',
