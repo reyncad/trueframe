@@ -288,60 +288,39 @@
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+@media print {
+    /* Her şeyi gizle */
+    body * { visibility: hidden !important; }
+    /* Sadece PDF raporu göster */
+    #pdfReportWrapper,
+    #pdfReportWrapper * { visibility: visible !important; }
+    /* Wrapper'ı görünür ve tam genişlikte yap */
+    #pdfReportWrapper {
+        position: fixed !important;
+        left: 0 !important; top: 0 !important;
+        width: 100% !important; height: auto !important;
+        overflow: visible !important; opacity: 1 !important;
+        z-index: 99999 !important;
+    }
+    /* Beyaz arka plan */
+    html, body { background: #ffffff !important; margin: 0 !important; }
+    /* Sayfa kenar boşlukları */
+    @page { margin: 12mm; size: A4 portrait; }
+}
+</style>
 <script>
-    async function exportTrueFramePdf(btnId) {
+    function exportTrueFramePdf(btnId) {
         const btn = document.getElementById(btnId || 'pdfBtn');
-        if (btn) { btn.disabled = true; btn.textContent = 'PDF hazırlanıyor...'; }
+        if (btn) { btn.disabled = true; btn.textContent = 'Yazdırma açılıyor...'; }
 
-        const source = document.getElementById('pdfReport');
-
-        // Clone'u body'in en üstüne koy.
-        // z-index POZITIF olmali — negatif z-index dark body arkaplaninin
-        // arkasinda kalir, html2canvas sadece karanlik ekrani yakalar → bos PDF.
-        const clone = source.cloneNode(true);
-        clone.style.cssText = [
-            'position:fixed', 'top:0', 'left:0',
-            'width:720px', 'background:#ffffff', 'color:#0f172a',
-            'z-index:99999', 'pointer-events:none', 'box-sizing:border-box',
-            'font-family:"Segoe UI",Arial,sans-serif'
-        ].join(';');
-        document.body.appendChild(clone);
-
-        // Tarayıcının layout'u hesaplaması için bekle
-        await new Promise(resolve => setTimeout(resolve, 350));
-
-        const opt = {
-            margin:      [10, 10, 14, 10],
-            image:       { type: 'jpeg', quality: 0.92 },
-            html2canvas: {
-                scale: 1.5, useCORS: true, allowTaint: true,
-                backgroundColor: '#ffffff', logging: false,
-                foreignObjectRendering: false,
-                windowWidth: 740,
-                windowHeight: clone.scrollHeight + 100
-            },
-            jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak:   { mode: ['css', 'legacy'], avoid: ['.pdf-block', 'tr'] }
-        };
-
-        try {
-            await html2pdf().set(opt).from(clone).toPdf().get('pdf').then(pdf => {
-                const total = pdf.internal.getNumberOfPages();
-                for (let i = 1; i <= total; i++) {
-                    pdf.setPage(i);
-                    pdf.setFontSize(8);
-                    pdf.setTextColor(130, 140, 160);
-                    pdf.text('TrueFrame - AI Image Verification', 10, 292);
-                    pdf.text('Sayfa ' + i + ' / ' + total, 200, 292, { align: 'right' });
-                }
-            }).save('trueframe-rapor-@(DateTime.Now.ToString("yyyyMMdd-HHmm")).pdf');
-        } catch (e) {
-            console.error('PDF üretim hatası:', e);
-            alert('PDF üretilirken bir hata oluştu. Lütfen tekrar deneyiniz.');
-        } finally {
-            document.body.removeChild(clone);
-            if (btn) { btn.disabled = false; btn.textContent = 'PDF İndir'; }
-        }
+        // Kısa gecikme sonrası print dialog'unu aç
+        // (Chrome'da "PDF olarak kaydet" seçeneği ile direkt PDF oluşturulur)
+        setTimeout(function () {
+            window.print();
+            setTimeout(function () {
+                if (btn) { btn.disabled = false; btn.textContent = 'PDF İndir'; }
+            }, 1500);
+        }, 80);
     }
 </script>
