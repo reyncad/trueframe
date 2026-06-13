@@ -7,42 +7,6 @@
     var  IC             = System.Globalization.CultureInfo.InvariantCulture;
 }
 
-<style>
-/* ── Sekme navigasyonu ───────────────────────────────── */
-.result-nav-tabs { display:flex; gap:0; border-bottom:2px solid #e5e7eb; margin-bottom:1.5rem; flex-wrap:wrap; }
-.result-nav-tabs button {
-    background:none; border:none; padding:.6rem 1.1rem; font-size:.78rem; font-weight:600;
-    letter-spacing:.06em; text-transform:uppercase; color:#6b7280; cursor:pointer;
-    border-bottom:2px solid transparent; margin-bottom:-2px; transition:color .15s,border-color .15s;
-}
-.result-nav-tabs button.active { color:#2563eb; border-bottom-color:#2563eb; }
-.result-nav-tabs button:hover:not(.active) { color:#374151; }
-
-/* ── Histogram kutusu ────────────────────────────────── */
-.histogram-box { background:#111827; border-radius:10px; padding:1.2rem 1.2rem .8rem; }
-.histogram-box h6 { color:#9ca3af; font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; margin-bottom:.8rem; }
-
-/* ── Renk swatches ───────────────────────────────────── */
-.color-swatches { display:flex; gap:8px; flex-wrap:wrap; margin-top:.5rem; }
-.color-swatch   { width:36px; height:36px; border-radius:6px; border:1px solid rgba(255,255,255,.15); }
-
-/* ── Overlay heatmap canvas ──────────────────────────── */
-.heatmap-overlay-canvas { width:100%; border-radius:10px; display:block; }
-
-/* ── Özet kart ───────────────────────────────────────── */
-.stat-card { background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:.9rem 1rem; }
-.stat-card .stat-label { font-size:.68rem; text-transform:uppercase; letter-spacing:.07em; color:#6b7280; margin-bottom:.25rem; }
-.stat-card .stat-value { font-size:1.1rem; font-weight:700; color:#111827; }
-
-/* ── Renk analizi kartları (dark) ────────────────────── */
-.dark-metric-card { background:#1f2937; border-radius:10px; padding:1rem; }
-.dark-metric-card .dmc-label { font-size:.65rem; text-transform:uppercase; letter-spacing:.07em; color:#9ca3af; margin-bottom:.3rem; }
-.dark-metric-card .dmc-value { font-size:1.05rem; font-weight:700; color:#f9fafb; }
-
-/* ── Teknik tablo ────────────────────────────────────── */
-.info-section-title { font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:#9ca3af; margin-bottom:.75rem; padding-bottom:.4rem; border-bottom:1px solid #e5e7eb; }
-</style>
-
 <section class="result-page">
 <div class="container py-5">
 

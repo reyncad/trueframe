@@ -7,26 +7,6 @@
     var  IC            = System.Globalization.CultureInfo.InvariantCulture;
 }
 
-<style>
-.result-nav-tabs { display:flex; gap:0; border-bottom:2px solid #e5e7eb; margin-bottom:1.5rem; flex-wrap:wrap; }
-.result-nav-tabs button {
-    background:none; border:none; padding:.6rem 1.1rem; font-size:.78rem; font-weight:600;
-    letter-spacing:.06em; text-transform:uppercase; color:#6b7280; cursor:pointer;
-    border-bottom:2px solid transparent; margin-bottom:-2px; transition:color .15s,border-color .15s;
-}
-.result-nav-tabs button.active { color:#2563eb; border-bottom-color:#2563eb; }
-.result-nav-tabs button:hover:not(.active) { color:#374151; }
-.histogram-box { background:#111827; border-radius:10px; padding:1.2rem 1.2rem .8rem; }
-.histogram-box h6 { color:#9ca3af; font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; margin-bottom:.8rem; }
-.color-swatches { display:flex; gap:8px; flex-wrap:wrap; margin-top:.5rem; }
-.color-swatch   { width:36px; height:36px; border-radius:6px; border:1px solid rgba(0,0,0,.1); }
-.heatmap-overlay-canvas { width:100%; border-radius:10px; display:block; }
-.stat-card { background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:.9rem 1rem; }
-.stat-card .stat-label { font-size:.68rem; text-transform:uppercase; letter-spacing:.07em; color:#6b7280; margin-bottom:.25rem; }
-.stat-card .stat-value { font-size:1.1rem; font-weight:700; color:#111827; }
-.info-section-title { font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:#9ca3af; margin-bottom:.75rem; padding-bottom:.4rem; border-bottom:1px solid #e5e7eb; }
-</style>
-
 <section class="details-page">
 <div class="container py-5">
 
@@ -147,7 +127,7 @@
                             {
                                 <div class="alert alert-warning rounded-4 mt-2 d-flex align-items-center gap-2">
                                     <strong>⚠ Manipülasyon Tespit Edildi</strong>
-                                    <span class="ms-auto badge bg-warning text-dark">Skor: @Model.ManipScore.ToString("F1")%</span>
+                                    <span class="ms-auto record-type both">Skor: @Model.ManipScore.ToString("F1")%</span>
                                 </div>
                             }
                             <div class="row g-3 mt-2">
@@ -180,7 +160,7 @@
                                 <div class="quality-score-circle">@Model.QualityScore.ToString("F0")</div>
                             </div>
                             @if (!string.IsNullOrEmpty(Model.Verdict))
-                            { <div class="alert alert-light border rounded-4 mt-3 mb-3" style="font-size:.9rem">@Model.Verdict</div> }
+                            { <div class="default-info mt-3 mb-3" style="font-size:.9rem">@Model.Verdict</div> }
 
                             <div class="chart-card mt-3 mb-3">
                                 <h6 class="text-muted mb-2">6 Boyutlu Kalite Profili</h6>
@@ -343,7 +323,7 @@
             <div class="histogram-box mb-4">
                 <h6>Piksel Dağılımı</h6>
                 <canvas id="histogramChart" height="100"></canvas>
-                <div class="d-flex gap-3 mt-2" style="font-size:.75rem;color:#9ca3af">
+                <div class="d-flex gap-3 mt-2" style="font-size:.75rem;color:var(--text-2)">
                     <span><span style="display:inline-block;width:10px;height:10px;background:#ef4444;border-radius:2px;margin-right:4px"></span>Kırmızı</span>
                     <span><span style="display:inline-block;width:10px;height:10px;background:#22c55e;border-radius:2px;margin-right:4px"></span>Yeşil</span>
                     <span><span style="display:inline-block;width:10px;height:10px;background:#3b82f6;border-radius:2px;margin-right:4px"></span>Mavi</span>
@@ -404,7 +384,7 @@
                             @if (Model.LumaNoise.HasValue)
                             { <div class="col-6"><div class="stat-card"><div class="stat-label">Luma / Kroma</div><div class="stat-value" style="font-size:.9rem">@Model.LumaNoise.Value.ToString("F2") / @(Model.ChromaNoise?.ToString("F2") ?? "—")</div></div></div> }
                             @if (!string.IsNullOrEmpty(Model.ColorNoiseDescription) && Model.ColorNoiseSeverity != "yok")
-                            { <div class="col-12"><div class="stat-card"><div class="stat-label">Gürültü Açıklaması</div><div class="stat-value" style="font-size:.85rem;font-weight:500;color:#374151">@Model.ColorNoiseDescription</div></div></div> }
+                            { <div class="col-12"><div class="stat-card"><div class="stat-label">Gürültü Açıklaması</div><div class="stat-value" style="font-size:.85rem;font-weight:500">@Model.ColorNoiseDescription</div></div></div> }
                         </div>
                     </div>
                 }
