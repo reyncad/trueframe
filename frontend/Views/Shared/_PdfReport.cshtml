@@ -289,25 +289,20 @@
 </div>
 
 <style>
-@media print {
-    /* Her şeyi gizle */
-    body * { visibility: hidden !important; }
-    /* Sadece PDF raporu göster */
-    #pdfReportWrapper,
-    #pdfReportWrapper * { visibility: visible !important; }
-    /* Wrapper'ı görünür ve tam genişlikte yap */
-    #pdfReportWrapper {
-        position: fixed !important;
-        left: 0 !important; top: 0 !important;
-        width: 100% !important; height: auto !important;
-        overflow: visible !important; opacity: 1 !important;
-        z-index: 99999 !important;
+    @@media print {
+        body * { visibility: hidden !important; }
+        #pdfReportWrapper,
+        #pdfReportWrapper * { visibility: visible !important; }
+        #pdfReportWrapper {
+            position: fixed !important;
+            left: 0 !important; top: 0 !important;
+            width: 100% !important; height: auto !important;
+            overflow: visible !important; opacity: 1 !important;
+            z-index: 99999 !important;
+        }
+        html, body { background: #ffffff !important; margin: 0 !important; }
+        @@page { margin: 12mm; size: A4 portrait; }
     }
-    /* Beyaz arka plan */
-    html, body { background: #ffffff !important; margin: 0 !important; }
-    /* Sayfa kenar boşlukları */
-    @page { margin: 12mm; size: A4 portrait; }
-}
 </style>
 <script>
     function exportTrueFramePdf(btnId) {
