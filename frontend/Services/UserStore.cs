@@ -91,5 +91,30 @@ namespace TrueFrameUI.Services
                 return user;
             }
         }
+
+        public bool UpdateFullName(string username, string newFullName)
+        {
+            lock (_lock)
+            {
+                var key = username.ToLower();
+                if (!_users.TryGetValue(key, out var user)) return false;
+                user.FullName = newFullName;
+                Save();
+                return true;
+            }
+        }
+
+        public bool ChangePassword(string username, string currentPassword, string newPassword)
+        {
+            lock (_lock)
+            {
+                var key = username.ToLower();
+                if (!_users.TryGetValue(key, out var user)) return false;
+                if (!PasswordHasher.Verify(currentPassword, user.PasswordHash)) return false;
+                user.PasswordHash = PasswordHasher.Hash(newPassword);
+                Save();
+                return true;
+            }
+        }
     }
 }

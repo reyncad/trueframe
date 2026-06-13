@@ -88,9 +88,11 @@
                     @if (Context.Session.GetString("UserType") == "Registered")
                     {
                         <li class="nav-item ms-lg-3">
-                            <span class="nav-user-pill">
-                                @Context.Session.GetString("UserEmail")
-                            </span>
+                            <a class="nav-user-pill text-decoration-none"
+                               asp-controller="Auth" asp-action="Profile"
+                               title="@(T.Lang == "tr" ? "Profilim" : "My Profile")">
+                                @Context.Session.GetString("FullName")
+                            </a>
                         </li>
 
                         <li class="nav-item">

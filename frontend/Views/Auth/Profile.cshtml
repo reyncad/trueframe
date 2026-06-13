@@ -1,0 +1,87 @@
+@{
+    ViewData["Title"] = T.Lang == "tr" ? "Profilim" : "My Profile";
+    var username = Context.Session.GetString("UserEmail") ?? "";
+    var fullName = Context.Session.GetString("FullName") ?? "";
+}
+
+<div class="container py-5" style="max-width:680px;">
+
+    <div class="text-center mb-5">
+        <span class="section-label">@(T.Lang == "tr" ? "Hesap" : "Account")</span>
+        <h1 class="section-title">@(T.Lang == "tr" ? "Profilim" : "My Profile")</h1>
+    </div>
+
+    @if (TempData["ProfileError"] != null)
+    {
+        <div class="alert alert-danger rounded-4 mb-4">@TempData["ProfileError"]</div>
+    }
+    @if (TempData["ProfileSuccess"] != null)
+    {
+        <div class="alert alert-success rounded-4 mb-4">@TempData["ProfileSuccess"]</div>
+    }
+
+    <div class="info-card mb-4">
+        <h5 class="mb-1">@(T.Lang == "tr" ? "Kullanıcı Adı" : "Username")</h5>
+        <p class="text-muted mb-0">@username</p>
+    </div>
+
+    <div class="info-card mb-4">
+        <h5 class="mb-3">@(T.Lang == "tr" ? "Ad Soyad Güncelle" : "Update Display Name")</h5>
+        <form asp-controller="Auth" asp-action="UpdateName" method="post">
+            @Html.AntiForgeryToken()
+            <div class="mb-3">
+                <input type="text" name="fullName" value="@fullName"
+                       class="form-control form-control-lg rounded-4"
+                       placeholder="@(T.Lang == "tr" ? "Ad Soyad" : "Full Name")" required />
+            </div>
+            <button type="submit" class="btn btn-primary rounded-4">
+                @(T.Lang == "tr" ? "Güncelle" : "Update")
+            </button>
+        </form>
+    </div>
+
+    <div class="info-card">
+        <h5 class="mb-3">@(T.Lang == "tr" ? "Şifre Değiştir" : "Change Password")</h5>
+        <form asp-controller="Auth" asp-action="UpdatePassword" method="post">
+            @Html.AntiForgeryToken()
+            <div class="mb-3">
+                <label class="form-label text-muted small">@(T.Lang == "tr" ? "Mevcut Şifre" : "Current Password")</label>
+                <input type="password" name="currentPassword"
+                       class="form-control form-control-lg rounded-4" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-muted small">@(T.Lang == "tr" ? "Yeni Şifre" : "New Password")</label>
+                <input type="password" name="newPassword" id="newPw"
+                       class="form-control form-control-lg rounded-4" required />
+            </div>
+            <div class="mb-4">
+                <label class="form-label text-muted small">@(T.Lang == "tr" ? "Yeni Şifre Tekrar" : "Confirm New Password")</label>
+                <input type="password" name="confirmPassword" id="confirmPw"
+                       class="form-control form-control-lg rounded-4" required />
+                <div class="form-text text-danger d-none" id="pwMismatch">
+                    @(T.Lang == "tr" ? "Şifreler eşleşmiyor." : "Passwords do not match.")
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary rounded-4">
+                @(T.Lang == "tr" ? "Şifreyi Değiştir" : "Change Password")
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+document.querySelector('form:last-of-type').addEventListener('submit', function(e) {
+    const np = document.getElementById('newPw').value;
+    const cp = document.getElementById('confirmPw').value;
+    if (np !== cp) {
+        e.preventDefault();
+        document.getElementById('pwMismatch').classList.remove('d-none');
+        document.getElementById('confirmPw').classList.add('is-invalid');
+    }
+});
+document.getElementById('confirmPw').addEventListener('input', function() {
+    document.getElementById('pwMismatch').classList.add('d-none');
+    this.classList.remove('is-invalid');
+});
+</script>

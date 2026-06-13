@@ -78,17 +78,17 @@
 
                         <div class="result-mini-card">
                             <p>@T["hero.demo.ai"]</p>
-                            <h3>72%</h3>
+                            <h3 class="count-up" data-target="72" data-suffix="%">0%</h3>
                             <div class="progress">
-                                <div class="progress-bar" style="width:72%"></div>
+                                <div class="progress-bar demo-bar" data-width="72" style="width:0%"></div>
                             </div>
                         </div>
 
                         <div class="result-mini-card">
                             <p>@T["hero.demo.real"]</p>
-                            <h3>28%</h3>
+                            <h3 class="count-up" data-target="28" data-suffix="%">0%</h3>
                             <div class="progress">
-                                <div class="progress-bar bg-success" style="width:28%"></div>
+                                <div class="progress-bar bg-success demo-bar" data-width="28" style="width:0%"></div>
                             </div>
                         </div>
 
@@ -98,11 +98,11 @@
 
                         <div>
                             <p>@T["hero.demo.qual"]</p>
-                            <h3>84/100</h3>
+                            <h3 class="count-up" data-target="84" data-suffix="/100">0/100</h3>
                         </div>
 
-                        <div class="quality-circle">
-                            84
+                        <div class="quality-circle count-up" data-target="84" data-suffix="">
+                            0
                         </div>
 
                     </div>
@@ -116,6 +116,47 @@
     </div>
 
 </section>
+
+<script>
+(function () {
+    const observers = [];
+    document.querySelectorAll('.count-up').forEach(function (el) {
+        const target = parseInt(el.dataset.target, 10);
+        const suffix = el.dataset.suffix ?? '';
+        const duration = 1200;
+        let started = false;
+
+        const io = new IntersectionObserver(function (entries) {
+            if (entries[0].isIntersecting && !started) {
+                started = true;
+                const start = performance.now();
+                function step(now) {
+                    const pct = Math.min((now - start) / duration, 1);
+                    const ease = 1 - Math.pow(1 - pct, 3);
+                    el.textContent = Math.round(ease * target) + suffix;
+                    if (pct < 1) requestAnimationFrame(step);
+                }
+                requestAnimationFrame(step);
+            }
+        }, { threshold: 0.4 });
+
+        io.observe(el);
+        observers.push(io);
+    });
+
+    document.querySelectorAll('.demo-bar').forEach(function (bar) {
+        const w = parseInt(bar.dataset.width, 10);
+        const io = new IntersectionObserver(function (entries) {
+            if (entries[0].isIntersecting) {
+                bar.style.transition = 'width 1.2s cubic-bezier(.22,1,.36,1)';
+                bar.style.width = w + '%';
+                io.disconnect();
+            }
+        }, { threshold: 0.4 });
+        io.observe(bar);
+    });
+})();
+</script>
 
 <section class="feature-section">
 

@@ -19,6 +19,39 @@
             </a>
         </div>
 
+        @{
+            var totalCount = Model.Items.Count;
+            var aiCount    = Model.Items.Count(i => i.Label.Contains("YAPAY") || i.Label.Contains("MANİPÜLE") || i.Label.ToUpper().Contains("AI") || i.Label.ToUpper().Contains("FAKE"));
+            var realCount  = Model.Items.Count(i => i.Label.Contains("GERÇEK") || i.Label.ToUpper().Contains("REAL"));
+            var qualItems  = Model.Items.Where(i => i.Overall.HasValue).ToList();
+            var avgQual    = qualItems.Count > 0 ? qualItems.Average(i => i.Overall!.Value) : (double?)null;
+        }
+
+        @if (totalCount > 0)
+        {
+            <div class="history-stats-bar mb-4">
+                <div class="history-stat-item">
+                    <span class="stat-value">@totalCount</span>
+                    <span class="stat-label">@(T.Lang == "tr" ? "Toplam" : "Total")</span>
+                </div>
+                <div class="history-stat-item">
+                    <span class="stat-value" style="color:var(--danger)">@aiCount</span>
+                    <span class="stat-label">@(T.Lang == "tr" ? "AI Tespit" : "AI Detected")</span>
+                </div>
+                <div class="history-stat-item">
+                    <span class="stat-value" style="color:var(--success)">@realCount</span>
+                    <span class="stat-label">@(T.Lang == "tr" ? "Gerçek" : "Real")</span>
+                </div>
+                @if (avgQual.HasValue)
+                {
+                    <div class="history-stat-item">
+                        <span class="stat-value" style="color:var(--accent)">@avgQual.Value.ToString("F0")</span>
+                        <span class="stat-label">@(T.Lang == "tr" ? "Ort. Kalite" : "Avg. Quality")</span>
+                    </div>
+                }
+            </div>
+        }
+
         @if (!string.IsNullOrEmpty(Model.Error))
         {
             <div class="alert alert-danger rounded-4 mb-4">@Model.Error</div>
@@ -183,9 +216,15 @@
                             <div class="record-metrics">
                                 @if (item.FakeProb.HasValue)
                                 {
-                                    <div>
-                                        <span>@T["hist.ai"]</span>
-                                        <strong>@item.FakeProb.Value.ToString("F1")%</strong>
+                                    <div class="w-100">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span>@T["hist.ai"]</span>
+                                            <strong>@item.FakeProb.Value.ToString("F1")%</strong>
+                                        </div>
+                                        <div class="progress" style="height:4px;border-radius:4px">
+                                            <div class="progress-bar @(item.FakeProb.Value > 50 ? "bg-danger" : "bg-success")"
+                                                 style="width:@item.FakeProb.Value.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                        </div>
                                     </div>
                                 }
                                 @if (item.Overall.HasValue)

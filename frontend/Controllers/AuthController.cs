@@ -98,5 +98,57 @@ namespace TrueFrameUI.Controllers
             HttpContext.Session.Clear();
             return RedirectToAction("Index", "Home");
         }
+
+        public IActionResult Profile()
+        {
+            if (HttpContext.Session.GetString("UserType") != "Registered")
+                return RedirectToAction("Login");
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult UpdateName(string fullName)
+        {
+            var username = HttpContext.Session.GetString("UserEmail");
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(fullName))
+            {
+                TempData["ProfileError"] = "Ad Soyad boş bırakılamaz.";
+                return RedirectToAction("Profile");
+            }
+
+            _users.UpdateFullName(username, fullName.Trim());
+            HttpContext.Session.SetString("FullName", fullName.Trim());
+            TempData["ProfileSuccess"] = "Ad Soyad güncellendi.";
+            return RedirectToAction("Profile");
+        }
+
+        [HttpPost]
+        public IActionResult UpdatePassword(string currentPassword, string newPassword, string confirmPassword)
+        {
+            var username = HttpContext.Session.GetString("UserEmail");
+            if (string.IsNullOrWhiteSpace(username))
+                return RedirectToAction("Login");
+
+            if (newPassword != confirmPassword)
+            {
+                TempData["ProfileError"] = "Yeni şifreler eşleşmiyor.";
+                return RedirectToAction("Profile");
+            }
+
+            if (newPassword.Length < 8)
+            {
+                TempData["ProfileError"] = "Yeni şifre en az 8 karakter olmalıdır.";
+                return RedirectToAction("Profile");
+            }
+
+            if (!_users.ChangePassword(username, currentPassword, newPassword))
+            {
+                TempData["ProfileError"] = "Mevcut şifre hatalı.";
+                return RedirectToAction("Profile");
+            }
+
+            TempData["ProfileSuccess"] = "Şifre başarıyla güncellendi.";
+            return RedirectToAction("Profile");
+        }
     }
 }

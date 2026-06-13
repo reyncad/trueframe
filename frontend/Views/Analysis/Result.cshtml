@@ -606,6 +606,11 @@
 </div>
 </section>
 
+@* ── Lightbox overlay ── *@
+<div id="tf-lightbox" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);cursor:zoom-out;display:flex;align-items:center;justify-content:center">
+    <img id="tf-lightbox-img" src="" style="max-width:94vw;max-height:92vh;border-radius:12px;box-shadow:0 0 80px rgba(0,0,0,.6);object-fit:contain" />
+</div>
+
 @await Html.PartialAsync("_PdfReport", Model)
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -799,8 +804,43 @@ else
     <text>function initHeatmapTab(){}</text>
 }
 
+// ── Görsel zoom (lightbox) ──────────────────────────────
+(function() {
+    const lb  = document.getElementById('tf-lightbox');
+    const lbi = document.getElementById('tf-lightbox-img');
+    const mi  = document.getElementById('mainImage');
+    if (mi && lb && lbi) {
+        mi.style.cursor = 'zoom-in';
+        mi.addEventListener('click', function() {
+            lbi.src = mi.src;
+            lb.style.display = 'flex';
+        });
+        lb.addEventListener('click', function() { lb.style.display = 'none'; });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') lb.style.display = 'none';
+        });
+    }
+})();
+
+// ── Analiz kayıt toast'u ────────────────────────────────
+@if (Model.SavedId > 0)
+{
+    <text>
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            const toast = document.getElementById('customToast');
+            if (!toast) return;
+            toast.innerText = '@(T.Lang == "tr" ? "Analiz geçmişe kaydedildi." : "Analysis saved to history.")';
+            toast.className = 'custom-toast show success';
+            setTimeout(function() { toast.className = 'custom-toast'; }, 3000);
+        }, 600);
+    });
+    </text>
+}
+
 // İlk sekme zaten görünür — başlangıç chart'larını başlat
 (function() {
     if (document.getElementById('resultChart')) {} // zaten yukarıda init edildi
 })();
 </script>
+<div id="customToast" class="custom-toast"></div>
