@@ -1,5 +1,5 @@
-﻿@{
-    ViewData["Title"] = "Ana Sayfa";
+@{
+    ViewData["Title"] = T["nav.home"];
 }
 
 <section class="elite-hero">
@@ -12,27 +12,25 @@
 
                 <div class="hero-mini-badge">
                     <span></span>
-                    Yapay Zekâ Görsel Tespiti ve Kalite Analizi
+                    @T["hero.badge"]
                 </div>
 
                 <h1 class="elite-title mt-4">
-                    Görsellerin gerçekliğini ve kalitesini tek ekranda analiz et.
+                    @T["hero.title"]
                 </h1>
 
                 <p class="elite-subtitle mt-4">
-                    True Frame, yüklenen görsellerin yapay zekâ tarafından üretilip üretilmediğini,
-                    güven oranı, açıklama metni ve kalite skoru ile kullanıcıya anlaşılır şekilde sunan
-                    modern bir karar destek sistemidir.
+                    @T["hero.subtitle"]
                 </p>
 
                 <div class="hero-actions mt-5">
 
                     <a asp-controller="Analysis" asp-action="Upload" class="btn btn-primary btn-lg rounded-4 px-5">
-                        Analiz Yap
+                        @T["hero.cta"]
                     </a>
 
                     <a asp-controller="Home" asp-action="About" class="btn btn-light btn-lg rounded-4 px-5 shadow-sm">
-                        Sistemi İncele
+                        @T["hero.cta2"]
                     </a>
 
                 </div>
@@ -40,18 +38,18 @@
                 <div class="hero-stats mt-5">
 
                     <div>
-                        <strong>Real/Fake</strong>
-                        <span>AI üretim tespiti</span>
+                        <strong>@T["hero.s1.title"]</strong>
+                        <span>@T["hero.s1.desc"]</span>
                     </div>
 
                     <div>
-                        <strong>Quality</strong>
-                        <span>Netlik, kontrast, gürültü</span>
+                        <strong>@T["hero.s2.title"]</strong>
+                        <span>@T["hero.s2.desc"]</span>
                     </div>
 
                     <div>
-                        <strong>Explainable</strong>
-                        <span>Açıklamalı sonuç</span>
+                        <strong>@T["hero.s3.title"]</strong>
+                        <span>@T["hero.s3.desc"]</span>
                     </div>
 
                 </div>
@@ -64,22 +62,22 @@
 
                     <div class="dashboard-top">
                         <div>
-                            <h5>True Frame Analysis</h5>
-                            <p>Demo result preview</p>
+                            <h5>@T["hero.demo.title"]</h5>
+                            <p>@T["hero.demo.sub"]</p>
                         </div>
 
-                        <span class="status-pill">Completed</span>
+                        <span class="status-pill">@T["hero.demo.done"]</span>
                     </div>
 
                     <div class="image-preview-demo">
                         <div class="scan-line"></div>
-                        <span>Image Preview Area</span>
+                        <span>@T["hero.demo.img"]</span>
                     </div>
 
                     <div class="result-grid mt-4">
 
                         <div class="result-mini-card">
-                            <p>AI Probability</p>
+                            <p>@T["hero.demo.ai"]</p>
                             <h3>72%</h3>
                             <div class="progress">
                                 <div class="progress-bar" style="width:72%"></div>
@@ -87,7 +85,7 @@
                         </div>
 
                         <div class="result-mini-card">
-                            <p>Real Probability</p>
+                            <p>@T["hero.demo.real"]</p>
                             <h3>28%</h3>
                             <div class="progress">
                                 <div class="progress-bar bg-success" style="width:28%"></div>
@@ -99,7 +97,7 @@
                     <div class="quality-box mt-4">
 
                         <div>
-                            <p>Quality Score</p>
+                            <p>@T["hero.demo.qual"]</p>
                             <h3>84/100</h3>
                         </div>
 
@@ -107,10 +105,6 @@
                             84
                         </div>
 
-                    </div>
-
-                    <div class="explain-box mt-4">
-                        Işık dağılımı, doku geçişleri ve yapısal tutarsızlıklar analiz edilerek açıklanabilir sonuç üretilir.
                     </div>
 
                 </div>
@@ -128,11 +122,9 @@
     <div class="container">
 
         <div class="text-center mb-5">
-            <span class="section-label">Process</span>
-            <h2 class="section-title">Sistem nasıl çalışır?</h2>
-            <p class="section-desc">
-                Kullanıcı teknik bilgiye ihtiyaç duymadan görsel yükler, analiz türünü seçer ve sonucu yorumlayabilir.
-            </p>
+            <span class="section-label">@T["proc.label"]</span>
+            <h2 class="section-title">@T["proc.title"]</h2>
+            <p class="section-desc">@T["proc.desc"]</p>
         </div>
 
         <div class="row g-4">
@@ -140,32 +132,24 @@
             <div class="col-md-4">
                 <div class="feature-card">
                     <div class="feature-number">01</div>
-                    <h4>Görsel Yükleme</h4>
-                    <p>
-                        Kullanıcı JPG, PNG veya WEBP formatında görsel yükler.
-                        Sistem görseli ön izleme olarak gösterir.
-                    </p>
+                    <h4>@T["proc.s1.title"]</h4>
+                    <p>@T["proc.s1.desc"]</p>
                 </div>
             </div>
 
             <div class="col-md-4">
                 <div class="feature-card">
                     <div class="feature-number">02</div>
-                    <h4>Analiz Seçimi</h4>
-                    <p>
-                        Real/Fake analizi, kalite analizi veya iki analiz aynı anda seçilebilir.
-                        Seçim yapılmazsa iki analiz birlikte çalışır.
-                    </p>
+                    <h4>@T["proc.s2.title"]</h4>
+                    <p>@T["proc.s2.desc"]</p>
                 </div>
             </div>
 
             <div class="col-md-4">
                 <div class="feature-card">
                     <div class="feature-number">03</div>
-                    <h4>Sonuç Ekranı</h4>
-                    <p>
-                        AI/Real yüzdesi, güven oranı, kalite skoru ve açıklama metni tek ekranda sade biçimde gösterilir.
-                    </p>
+                    <h4>@T["proc.s3.title"]</h4>
+                    <p>@T["proc.s3.desc"]</p>
                 </div>
             </div>
 
@@ -183,14 +167,14 @@
 
             <div class="col-lg-5">
 
-                <span class="section-label">User Types</span>
+                <span class="section-label">@T["user.label"]</span>
 
                 <h2 class="section-title">
-                    Misafir ve kayıtlı kullanıcı akışı
+                    @T["user.title"]
                 </h2>
 
                 <p class="section-desc">
-                    Sistem hem hızlı deneme yapmak isteyen misafir kullanıcıları hem de analiz geçmişini saklamak isteyen kayıtlı kullanıcıları destekler.
+                    @T["user.desc"]
                 </p>
 
             </div>
@@ -201,34 +185,34 @@
 
                     <div class="col-md-6">
                         <div class="user-flow-card">
-                            <h4>Misafir Kullanıcı</h4>
-                            <p>Hızlı analiz yapmak isteyen kullanıcılar içindir.</p>
+                            <h4>@T["user.guest.title"]</h4>
+                            <p>@T["user.guest.desc"]</p>
 
                             <ul>
-                                <li>Sınırlı analiz hakkı</li>
-                                <li>Geçmiş kayıt tutulmaz</li>
-                                <li>Hızlı erişim sağlar</li>
+                                <li>@T["user.guest.l1"]</li>
+                                <li>@T["user.guest.l2"]</li>
+                                <li>@T["user.guest.l3"]</li>
                             </ul>
 
                             <a asp-controller="Auth" asp-action="Guest" class="btn btn-outline-primary rounded-4 w-100">
-                                Misafir Devam Et
+                                @T["user.guest.cta"]
                             </a>
                         </div>
                     </div>
 
                     <div class="col-md-6">
                         <div class="user-flow-card premium">
-                            <h4>Kayıtlı Kullanıcı</h4>
-                            <p>Analiz geçmişini yönetmek isteyen kullanıcılar içindir.</p>
+                            <h4>@T["user.reg.title"]</h4>
+                            <p>@T["user.reg.desc"]</p>
 
                             <ul>
-                                <li>Sınırsız analiz</li>
-                                <li>Kayıtlarım ekranı</li>
-                                <li>Tarihe ve türe göre filtreleme</li>
+                                <li>@T["user.reg.l1"]</li>
+                                <li>@T["user.reg.l2"]</li>
+                                <li>@T["user.reg.l3"]</li>
                             </ul>
 
                             <a asp-controller="Auth" asp-action="Login" class="btn btn-primary rounded-4 w-100">
-                                Giriş Yap
+                                @T["user.reg.cta"]
                             </a>
                         </div>
                     </div>

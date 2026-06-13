@@ -1,0 +1,350 @@
+using Microsoft.AspNetCore.Http;
+
+namespace TrueFrameUI.Services;
+
+public class TranslationService
+{
+    private readonly string _lang;
+
+    private static readonly Dictionary<string, Dictionary<string, string>> _t = new()
+    {
+        ["tr"] = new()
+        {
+            // ── Navbar ──────────────────────────────────────────
+            ["nav.home"]    = "Ana Sayfa",
+            ["nav.analyze"] = "Analiz Yap",
+            ["nav.history"] = "Kayıtlarım",
+            ["nav.about"]   = "Sistem Hakkında",
+            ["nav.login"]   = "Giriş Yap",
+            ["nav.logout"]  = "Çıkış Yap",
+            ["nav.guest"]   = "Misafir",
+
+            // ── Hero ────────────────────────────────────────────
+            ["hero.badge"]       = "Yapay Zekâ Görsel Tespiti ve Kalite Analizi",
+            ["hero.title"]       = "Görsellerin gerçekliğini ve kalitesini tek ekranda analiz et.",
+            ["hero.subtitle"]    = "True Frame, yüklenen görsellerin yapay zekâ tarafından üretilip üretilmediğini güven oranı, açıklama metni ve kalite skoru ile anlaşılır şekilde sunan modern bir analiz sistemidir.",
+            ["hero.cta"]         = "Analiz Yap",
+            ["hero.cta2"]        = "Sistemi İncele",
+            ["hero.s1.title"]    = "Real/Fake",
+            ["hero.s1.desc"]     = "AI üretim tespiti",
+            ["hero.s2.title"]    = "Kalite",
+            ["hero.s2.desc"]     = "Netlik, kontrast, gürültü",
+            ["hero.s3.title"]    = "Açıklamalı",
+            ["hero.s3.desc"]     = "Anlaşılır sonuç",
+            ["hero.demo.title"]  = "True Frame Analizi",
+            ["hero.demo.sub"]    = "Demo önizleme",
+            ["hero.demo.done"]   = "Tamamlandı",
+            ["hero.demo.ai"]     = "AI Olasılığı",
+            ["hero.demo.real"]   = "Gerçek Olasılığı",
+            ["hero.demo.qual"]   = "Kalite Skoru",
+            ["hero.demo.img"]    = "Görsel Önizleme",
+
+            // ── Process section ─────────────────────────────────
+            ["proc.label"]       = "Süreç",
+            ["proc.title"]       = "Sistem nasıl çalışır?",
+            ["proc.desc"]        = "Görsel yükle, analiz türünü seç, sonucu yorumla — teknik bilgi gerekmez.",
+            ["proc.s1.title"]    = "Görsel Yükleme",
+            ["proc.s1.desc"]     = "JPG, PNG veya WEBP formatında görsel yükle. Sistem ön izleme gösterir.",
+            ["proc.s2.title"]    = "Analiz Seçimi",
+            ["proc.s2.desc"]     = "Real/Fake, kalite analizi veya ikisi birden seçilebilir.",
+            ["proc.s3.title"]    = "Sonuç Ekranı",
+            ["proc.s3.desc"]     = "AI/Real yüzdesi, güven oranı ve kalite skoru tek ekranda gösterilir.",
+
+            // ── User type section ───────────────────────────────
+            ["user.label"]            = "Kullanıcı Türleri",
+            ["user.title"]            = "Misafir ve kayıtlı kullanıcı akışı",
+            ["user.desc"]             = "Sistem hem hızlı deneme yapmak isteyen misafir kullanıcıları hem de analiz geçmişini saklamak isteyen kayıtlı kullanıcıları destekler.",
+            ["user.guest.title"]      = "Misafir Kullanıcı",
+            ["user.guest.desc"]       = "Hızlı analiz yapmak isteyen kullanıcılar içindir.",
+            ["user.guest.l1"]         = "Sınırlı analiz hakkı",
+            ["user.guest.l2"]         = "Geçmiş kayıt tutulmaz",
+            ["user.guest.l3"]         = "Hızlı erişim sağlar",
+            ["user.guest.cta"]        = "Misafir Devam Et",
+            ["user.reg.title"]        = "Kayıtlı Kullanıcı",
+            ["user.reg.desc"]         = "Analiz geçmişini yönetmek isteyen kullanıcılar içindir.",
+            ["user.reg.l1"]           = "Sınırsız analiz",
+            ["user.reg.l2"]           = "Kayıtlarım ekranı",
+            ["user.reg.l3"]           = "Tarihe ve türe göre filtreleme",
+            ["user.reg.cta"]          = "Giriş Yap",
+
+            // ── Upload ──────────────────────────────────────────
+            ["up.label"]      = "Görsel Analizi",
+            ["up.title"]      = "Görselini yükle ve analiz başlat",
+            ["up.desc"]       = "Real/Fake analizi ve görsel kalite değerlendirmesi için JPG, PNG veya WEBP formatında bir görsel yükle.",
+            ["up.drop"]       = "Görsel seç veya buraya sürükle",
+            ["up.formats"]    = "Desteklenen: JPG, PNG, WEBP, TIFF, BMP",
+            ["up.maxsize"]    = "Önerilen maks. boyut: 5 MB",
+            ["up.preview"]    = "Görsel Ön İzleme",
+            ["up.type"]       = "Analiz Türü Seç",
+            ["up.type.desc"]  = "Tek analiz seçebilir veya ikisini birlikte çalıştırabilirsin.",
+            ["up.rf"]         = "Real / Fake Analizi",
+            ["up.rf.desc"]    = "AI üretim olasılığı ve güven oranı",
+            ["up.q"]          = "Görsel Kalite Analizi",
+            ["up.q.desc"]     = "Netlik, kontrast, gürültü ve kalite skoru",
+            ["up.default"]    = "Hiçbir seçenek işaretlenmezse iki analiz birlikte çalıştırılır.",
+            ["up.profile"]    = "Yayın Profili",
+            ["up.profile.desc"] = "Kalite standartlarını kullanım amacına göre değerlendirmek için bir profil seç.",
+            ["up.btn"]        = "Analizi Başlat",
+            ["up.loading"]    = "Analiz ediliyor...",
+            ["up.loading2"]   = "Görselin Real/Fake olasılığı ve kalite ölçütleri değerlendiriliyor.",
+            ["up.side.title"] = "Bu ekranda ne yapılır?",
+            ["up.side.l1"]    = "Görsel sisteme yüklenir.",
+            ["up.side.l2"]    = "Yüklenen görsel ön izleme olarak gösterilir.",
+            ["up.side.l3"]    = "Real/Fake ve kalite analizi seçilir.",
+            ["up.side.l4"]    = "Sonuçlar tek bir ekranda kullanıcıya sunulur.",
+            ["up.guest.title"]= "Misafir Kullanıcı",
+            ["up.guest.desc"] = "Kalan analiz hakkı:",
+            ["up.reg.title"]  = "Kayıtlı Kullanıcı",
+            ["up.reg.desc"]   = "Sınırsız analiz ve geçmiş kayıt erişimi aktif.",
+            ["up.no.title"]   = "Oturum açılmadı",
+            ["up.no.desc"]    = "Analiz yapabilirsin, ancak geçmiş kayıtlar için giriş yapman gerekir.",
+            ["up.login"]      = "Giriş Yap",
+
+            // ── Result ──────────────────────────────────────────
+            ["res.label"]     = "Analiz Sonucu",
+            ["res.title"]     = "Analiz sonucu hazır",
+            ["res.new"]       = "Yeni Analiz Yap",
+            ["res.done"]      = "Tamamlandı",
+            ["res.tab.gen"]   = "Genel",
+            ["res.tab.tech"]  = "Teknik & EXIF",
+            ["res.tab.hist"]  = "Histogram & Renk",
+            ["res.tab.heat"]  = "Keskinlik Haritası",
+            ["res.pdf"]       = "PDF İndir",
+            ["res.html"]      = "HTML Rapor",
+
+            // ── History ─────────────────────────────────────────
+            ["hist.label"]    = "Kayıtlarım",
+            ["hist.title"]    = "Geçmiş analiz kayıtlarım",
+            ["hist.desc"]     = "Daha önce yaptığınız analizler tarih sırasıyla listelenmektedir.",
+            ["hist.new"]      = "Yeni Analiz Yap",
+            ["hist.filter"]   = "Filtrele",
+            ["hist.clear"]    = "Temizle",
+            ["hist.result"]   = "Tespit Sonucu",
+            ["hist.all"]      = "Tümü",
+            ["hist.score"]    = "Kalite Skoru",
+            ["hist.start"]    = "Başlangıç",
+            ["hist.end"]      = "Bitiş",
+            ["hist.profile"]  = "Profil",
+            ["hist.type"]     = "Tür",
+            ["hist.name"]     = "Dosya Adı",
+            ["hist.detail"]   = "Detay Gör",
+            ["hist.report"]   = "HTML Rapor",
+            ["hist.delete"]   = "Sil",
+            ["hist.empty"]    = "Henüz analiz kaydı yok",
+            ["hist.empty2"]   = "Yaptığınız analizler burada otomatik olarak listelenir. Hemen bir görsel yükleyerek ilk analizinizi oluşturabilirsiniz.",
+            ["hist.empty3"]   = "İlk Analizini Yap",
+            ["hist.nofilt"]   = "Filtreye uyan kayıt bulunamadı",
+            ["hist.nofilt2"]  = "Filtre ölçütlerini değiştirin veya temizleyin.",
+            ["hist.filtclear"]= "Filtreleri Temizle",
+            ["hist.found"]    = "kayıt bulundu (filtreli görünüm).",
+            ["hist.ai"]       = "AI",
+            ["hist.qual"]     = "Kalite",
+
+            // ── Auth ────────────────────────────────────────────
+            ["login.title"]   = "Giriş Yap",
+            ["login.sub"]     = "Geçmiş analizlerine erişmek ve sınırsız analiz hakkı kullanmak için giriş yap.",
+            ["login.user"]    = "Kullanıcı Adı",
+            ["login.pass"]    = "Şifre",
+            ["login.btn"]     = "Giriş Yap",
+            ["login.noacc"]   = "Hesabın yok mu?",
+            ["login.toreg"]   = "Kayıt ol",
+            ["login.guest"]   = "Misafir olarak devam et",
+
+            ["reg.title"]     = "Hesap Oluştur",
+            ["reg.sub"]       = "Sınırsız analiz yapmak ve geçmiş analiz kayıtlarına erişmek için kayıt ol.",
+            ["reg.name"]      = "Ad Soyad",
+            ["reg.user"]      = "Kullanıcı Adı",
+            ["reg.pass"]      = "Şifre",
+            ["reg.confirm"]   = "Şifre Tekrar",
+            ["reg.btn"]       = "Kayıt Ol",
+            ["reg.hasacc"]    = "Zaten hesabın var mı?",
+            ["reg.tologin"]   = "Giriş yap",
+            ["reg.guest"]     = "Misafir olarak devam et",
+            ["reg.mismatch"]  = "Şifreler eşleşmiyor.",
+
+            // ── About ───────────────────────────────────────────
+            ["about.label"]   = "Sistem Hakkında",
+            ["about.title"]   = "True Frame nasıl çalışır?",
+            ["about.desc"]    = "True Frame, yüklenen görsellerin yapay zekâ tarafından üretilip üretilmediğini ve teknik kalite düzeyini analiz etmek için tasarlanan web tabanlı bir karar destek sistemidir.",
+
+            // ── Footer ──────────────────────────────────────────
+            ["footer.desc"]   = "Yapay Zekâ Üretimi Görsel Tespiti ve Görsel Kalite Analizi Sistemi",
+            ["footer.uni"]    = "Beykent Üniversitesi — Yazılım Mühendisliği",
+        },
+
+        ["en"] = new()
+        {
+            // ── Navbar ──────────────────────────────────────────
+            ["nav.home"]    = "Home",
+            ["nav.analyze"] = "Analyze",
+            ["nav.history"] = "My Records",
+            ["nav.about"]   = "About",
+            ["nav.login"]   = "Sign In",
+            ["nav.logout"]  = "Sign Out",
+            ["nav.guest"]   = "Guest",
+
+            // ── Hero ────────────────────────────────────────────
+            ["hero.badge"]       = "AI Image Detection & Quality Analysis",
+            ["hero.title"]       = "Analyze the authenticity and quality of images in one screen.",
+            ["hero.subtitle"]    = "True Frame is a modern analysis system that presents whether an uploaded image is AI-generated, along with confidence score, explanation and quality metrics.",
+            ["hero.cta"]         = "Analyze Now",
+            ["hero.cta2"]        = "Learn More",
+            ["hero.s1.title"]    = "Real/Fake",
+            ["hero.s1.desc"]     = "AI generation detection",
+            ["hero.s2.title"]    = "Quality",
+            ["hero.s2.desc"]     = "Sharpness, contrast, noise",
+            ["hero.s3.title"]    = "Explainable",
+            ["hero.s3.desc"]     = "Clear results",
+            ["hero.demo.title"]  = "True Frame Analysis",
+            ["hero.demo.sub"]    = "Demo preview",
+            ["hero.demo.done"]   = "Completed",
+            ["hero.demo.ai"]     = "AI Probability",
+            ["hero.demo.real"]   = "Real Probability",
+            ["hero.demo.qual"]   = "Quality Score",
+            ["hero.demo.img"]    = "Image Preview",
+
+            // ── Process section ─────────────────────────────────
+            ["proc.label"]       = "Process",
+            ["proc.title"]       = "How does the system work?",
+            ["proc.desc"]        = "Upload an image, select analysis type, interpret results — no technical knowledge required.",
+            ["proc.s1.title"]    = "Upload Image",
+            ["proc.s1.desc"]     = "Upload a JPG, PNG or WEBP image. The system shows a preview.",
+            ["proc.s2.title"]    = "Select Analysis",
+            ["proc.s2.desc"]     = "Real/Fake analysis, quality analysis or both can be selected.",
+            ["proc.s3.title"]    = "Results Screen",
+            ["proc.s3.desc"]     = "AI/Real percentage, confidence score and quality score shown on one screen.",
+
+            // ── User type section ───────────────────────────────
+            ["user.label"]            = "User Types",
+            ["user.title"]            = "Guest and registered user flow",
+            ["user.desc"]             = "The system supports both guest users for quick analysis and registered users who want to save their analysis history.",
+            ["user.guest.title"]      = "Guest User",
+            ["user.guest.desc"]       = "For users who want to perform quick analyses.",
+            ["user.guest.l1"]         = "Limited analysis quota",
+            ["user.guest.l2"]         = "No history saved",
+            ["user.guest.l3"]         = "Quick access",
+            ["user.guest.cta"]        = "Continue as Guest",
+            ["user.reg.title"]        = "Registered User",
+            ["user.reg.desc"]         = "For users who want to manage their analysis history.",
+            ["user.reg.l1"]           = "Unlimited analyses",
+            ["user.reg.l2"]           = "My Records screen",
+            ["user.reg.l3"]           = "Filter by date and type",
+            ["user.reg.cta"]          = "Sign In",
+
+            // ── Upload ──────────────────────────────────────────
+            ["up.label"]      = "Image Analysis",
+            ["up.title"]      = "Upload your image and start analysis",
+            ["up.desc"]       = "Upload a JPG, PNG or WEBP image for Real/Fake detection and visual quality assessment.",
+            ["up.drop"]       = "Select image or drag here",
+            ["up.formats"]    = "Supported: JPG, PNG, WEBP, TIFF, BMP",
+            ["up.maxsize"]    = "Recommended max size: 5 MB",
+            ["up.preview"]    = "Image Preview",
+            ["up.type"]       = "Select Analysis Type",
+            ["up.type.desc"]  = "You can select one type or run both together.",
+            ["up.rf"]         = "Real / Fake Analysis",
+            ["up.rf.desc"]    = "AI generation probability and confidence score",
+            ["up.q"]          = "Visual Quality Analysis",
+            ["up.q.desc"]     = "Sharpness, contrast, noise and quality score",
+            ["up.default"]    = "If nothing is selected, both analyses run by default.",
+            ["up.profile"]    = "Publishing Profile",
+            ["up.profile.desc"] = "Select a profile to evaluate quality standards by intended use.",
+            ["up.btn"]        = "Start Analysis",
+            ["up.loading"]    = "Analyzing...",
+            ["up.loading2"]   = "Evaluating Real/Fake probability and quality metrics of your image.",
+            ["up.side.title"] = "What happens here?",
+            ["up.side.l1"]    = "The image is uploaded to the system.",
+            ["up.side.l2"]    = "The uploaded image is shown as a preview.",
+            ["up.side.l3"]    = "Real/Fake and quality analysis are selected.",
+            ["up.side.l4"]    = "Results are presented on a single screen.",
+            ["up.guest.title"]= "Guest User",
+            ["up.guest.desc"] = "Remaining analyses:",
+            ["up.reg.title"]  = "Registered User",
+            ["up.reg.desc"]   = "Unlimited analyses and history access active.",
+            ["up.no.title"]   = "Not signed in",
+            ["up.no.desc"]    = "You can analyze, but sign in to save your history.",
+            ["up.login"]      = "Sign In",
+
+            // ── Result ──────────────────────────────────────────
+            ["res.label"]     = "Analysis Result",
+            ["res.title"]     = "Analysis complete",
+            ["res.new"]       = "New Analysis",
+            ["res.done"]      = "Completed",
+            ["res.tab.gen"]   = "General",
+            ["res.tab.tech"]  = "Technical & EXIF",
+            ["res.tab.hist"]  = "Histogram & Color",
+            ["res.tab.heat"]  = "Sharpness Map",
+            ["res.pdf"]       = "Download PDF",
+            ["res.html"]      = "HTML Report",
+
+            // ── History ─────────────────────────────────────────
+            ["hist.label"]    = "My Records",
+            ["hist.title"]    = "My analysis history",
+            ["hist.desc"]     = "Your previous analyses are listed in chronological order.",
+            ["hist.new"]      = "New Analysis",
+            ["hist.filter"]   = "Filter",
+            ["hist.clear"]    = "Clear",
+            ["hist.result"]   = "Detection Result",
+            ["hist.all"]      = "All",
+            ["hist.score"]    = "Quality Score",
+            ["hist.start"]    = "From",
+            ["hist.end"]      = "To",
+            ["hist.profile"]  = "Profile",
+            ["hist.type"]     = "Type",
+            ["hist.name"]     = "File Name",
+            ["hist.detail"]   = "View Details",
+            ["hist.report"]   = "HTML Report",
+            ["hist.delete"]   = "Delete",
+            ["hist.empty"]    = "No analysis records yet",
+            ["hist.empty2"]   = "Your analyses will be listed here automatically. Upload an image to create your first analysis.",
+            ["hist.empty3"]   = "Create First Analysis",
+            ["hist.nofilt"]   = "No records match the filter",
+            ["hist.nofilt2"]  = "Try changing or clearing the filter criteria.",
+            ["hist.filtclear"]= "Clear Filters",
+            ["hist.found"]    = "records found (filtered view).",
+            ["hist.ai"]       = "AI",
+            ["hist.qual"]     = "Quality",
+
+            // ── Auth ────────────────────────────────────────────
+            ["login.title"]   = "Sign In",
+            ["login.sub"]     = "Sign in to access your history and unlimited analyses.",
+            ["login.user"]    = "Username",
+            ["login.pass"]    = "Password",
+            ["login.btn"]     = "Sign In",
+            ["login.noacc"]   = "Don't have an account?",
+            ["login.toreg"]   = "Register",
+            ["login.guest"]   = "Continue as guest",
+
+            ["reg.title"]     = "Create Account",
+            ["reg.sub"]       = "Register to perform unlimited analyses and access your history.",
+            ["reg.name"]      = "Full Name",
+            ["reg.user"]      = "Username",
+            ["reg.pass"]      = "Password",
+            ["reg.confirm"]   = "Confirm Password",
+            ["reg.btn"]       = "Register",
+            ["reg.hasacc"]    = "Already have an account?",
+            ["reg.tologin"]   = "Sign in",
+            ["reg.guest"]     = "Continue as guest",
+            ["reg.mismatch"]  = "Passwords do not match.",
+
+            // ── About ───────────────────────────────────────────
+            ["about.label"]   = "About",
+            ["about.title"]   = "How does True Frame work?",
+            ["about.desc"]    = "True Frame is a web-based decision support system designed to analyze whether uploaded images are AI-generated and assess their technical quality.",
+
+            // ── Footer ──────────────────────────────────────────
+            ["footer.desc"]   = "AI-Generated Image Detection & Visual Quality Analysis System",
+            ["footer.uni"]    = "Beykent University — Software Engineering",
+        }
+    };
+
+    public TranslationService(IHttpContextAccessor httpContextAccessor)
+    {
+        var cookie = httpContextAccessor.HttpContext?.Request.Cookies["lang"];
+        _lang = cookie == "en" ? "en" : "tr";
+    }
+
+    public string this[string key] =>
+        _t.TryGetValue(_lang, out var dict) && dict.TryGetValue(key, out var val) ? val : key;
+
+    public string Lang => _lang;
+}

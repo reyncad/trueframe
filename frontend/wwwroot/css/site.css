@@ -97,6 +97,21 @@ main { min-height: 75vh; }
 .nav-user-pill  { background: rgba(16,185,129,.15); color: #34D399; border: 1px solid rgba(16,185,129,.25); }
 .nav-guest-pill { background: rgba(245,158,11,.12);  color: #FBBF24; border: 1px solid rgba(245,158,11,.22); }
 
+/* ── Lang switcher ───────────────────────────────────────── */
+.lang-switcher { color: var(--text-2); }
+.lang-btn {
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: var(--text-3);
+    text-decoration: none;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: color .15s, background .15s;
+}
+.lang-btn:hover  { color: var(--text-1); background: rgba(255,255,255,.06); }
+.lang-active     { color: var(--accent) !important; background: var(--accent-dim); }
+
 /* ── Hamburger icon ──────────────────────────────────────── */
 .navbar-toggler { border-color: var(--border); }
 .navbar-toggler-icon { filter: invert(1); }

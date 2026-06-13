@@ -1,6 +1,6 @@
 @model TrueFrameUI.Models.AnalysisViewModel
 @{
-    ViewData["Title"] = "Analiz Sonucu";
+    ViewData["Title"] = T["res.label"];
     bool showQuality    = Model.QualitySelected && Model.QualityScore > 0;
     bool hasSharpMap    = Model.SharpnessGrid  != null && Model.SharpnessGrid.Count  > 0;
     bool hasHeatmapTab  = showQuality && hasSharpMap;
@@ -13,11 +13,11 @@
     @* ── Sayfa başlığı ─────────────────────────────────── *@
     <div class="result-header mb-4">
         <div>
-            <span class="section-label">Analiz Sonucu</span>
-            <h1 class="section-title">Analiz sonucu hazır</h1>
+            <span class="section-label">@T["res.label"]</span>
+            <h1 class="section-title">@T["res.title"]</h1>
         </div>
         <a asp-controller="Analysis" asp-action="Upload" class="btn btn-outline-primary rounded-4">
-            Yeni Analiz Yap
+            @T["res.new"]
         </a>
     </div>
 
@@ -31,20 +31,20 @@
 
         <div class="status-success-box mb-4">
             <div><strong>@Model.StatusMessage</strong></div>
-            <span>Completed</span>
+            <span>@T["res.done"]</span>
         </div>
 
         @* ── Sekme navigasyonu ──────────────────────────── *@
         <div class="result-nav-tabs" id="resultTabs">
-            <button class="active" data-tab="genel">Genel</button>
+            <button class="active" data-tab="genel">@T["res.tab.gen"]</button>
             @if (showQuality)
             {
-                <button data-tab="teknik">Teknik &amp; EXIF</button>
-                <button data-tab="histogram">Histogram &amp; Renk</button>
+                <button data-tab="teknik">@T["res.tab.tech"]</button>
+                <button data-tab="histogram">@T["res.tab.hist"]</button>
             }
             @if (hasHeatmapTab)
             {
-                <button data-tab="heatmap">Keskinlik Haritası</button>
+                <button data-tab="heatmap">@T["res.tab.heat"]</button>
             }
         </div>
 
@@ -594,11 +594,11 @@
     @if (string.IsNullOrEmpty(Model.ErrorMessage))
     {
         <div class="text-center mt-4 d-flex gap-2 justify-content-center flex-wrap">
-            <button id="pdfBtn" onclick="exportTrueFramePdf('pdfBtn')" class="btn btn-outline-secondary rounded-4 px-4">PDF İndir</button>
+            <button id="pdfBtn" onclick="exportTrueFramePdf('pdfBtn')" class="btn btn-outline-secondary rounded-4 px-4">@T["res.pdf"]</button>
             @if (Model.SavedId > 0)
             {
                 <a asp-controller="Analysis" asp-action="Report" asp-route-id="@Model.SavedId"
-                   target="_blank" class="btn btn-outline-primary rounded-4 px-4">HTML Rapor Aç</a>
+                   target="_blank" class="btn btn-outline-primary rounded-4 px-4">@T["res.html"]</a>
             }
         </div>
     }
@@ -643,7 +643,7 @@ function onTabShow(tab) {
         new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['AI Olasılığı', 'Gerçek Olasılığı'],
+                labels: ['@(T.Lang == "tr" ? "AI Olasılığı" : "AI Probability")', '@(T.Lang == "tr" ? "Gerçek Olasılığı" : "Real Probability")'],
                 datasets: [{ data: [@Model.AiProbability.ToString("F2",IC), @Model.RealProbability.ToString("F2",IC)],
                     backgroundColor: ['#2563eb','#16a34a'], borderWidth:0 }]
             },
@@ -663,8 +663,10 @@ function onTabShow(tab) {
         new Chart(ctx, {
             type: 'radar',
             data: {
-                labels: ['Keskinlik','Gürültü','Pozlama','Renk','Estetik','Teknik'],
-                datasets: [{ label:'Kalite',
+                labels: @(T.Lang == "tr"
+                    ? "['Keskinlik','Gürültü','Pozlama','Renk','Estetik','Teknik']"
+                    : "['Sharpness','Noise','Exposure','Color','Aesthetics','Technical']"),
+                datasets: [{ label:'@(T.Lang == "tr" ? "Kalite" : "Quality")',
                     data: [@Model.Sharpness.ToString("F1",IC),@Model.Noise.ToString("F1",IC),@Model.Exposure.ToString("F1",IC),
                            @Model.Color.ToString("F1",IC),@Model.Aesthetics.ToString("F1",IC),@Model.Technical.ToString("F1",IC)],
                     backgroundColor:'rgba(37,99,235,.15)', borderColor:'#2563eb', pointBackgroundColor:'#2563eb' }]

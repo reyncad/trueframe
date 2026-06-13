@@ -10,8 +10,10 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
 });
 
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<UserStore>();
+builder.Services.AddScoped<TranslationService>();
 
 // ── DataProtection ────────────────────────────────────────────
 // Key'leri kalıcı bir dizine yaz; container yeniden oluşturulduğunda

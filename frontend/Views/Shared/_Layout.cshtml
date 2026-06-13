@@ -1,5 +1,5 @@
-﻿<!DOCTYPE html>
-<html lang="tr" style="color-scheme:dark">
+<!DOCTYPE html>
+<html lang="@T.Lang" style="color-scheme:dark">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -18,7 +18,8 @@
 
     @{
         var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
-        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+        var currentAction     = ViewContext.RouteData.Values["action"]?.ToString();
+        var returnUrl         = Context.Request.Path + Context.Request.QueryString;
     }
 
     <nav class="navbar navbar-expand-lg custom-navbar shadow-sm">
@@ -39,14 +40,14 @@
                     <li class="nav-item">
                         <a class="nav-link @(currentController == "Home" && currentAction == "Index" ? "active-link" : "")"
                            asp-controller="Home" asp-action="Index">
-                            Ana Sayfa
+                            @T["nav.home"]
                         </a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link @(currentController == "Analysis" && currentAction == "Upload" ? "active-link" : "")"
                            asp-controller="Analysis" asp-action="Upload">
-                            Analiz Yap
+                            @T["nav.analyze"]
                         </a>
                     </li>
 
@@ -55,7 +56,7 @@
                         <li class="nav-item">
                             <a class="nav-link @(currentController == "Analysis" && currentAction == "History" ? "active-link" : "")"
                                asp-controller="Analysis" asp-action="History">
-                                Kayıtlarım
+                                @T["nav.history"]
                             </a>
                         </li>
                     }
@@ -63,8 +64,25 @@
                     <li class="nav-item">
                         <a class="nav-link @(currentController == "Home" && currentAction == "About" ? "active-link" : "")"
                            asp-controller="Home" asp-action="About">
-                            Sistem Hakkında
+                            @T["nav.about"]
                         </a>
+                    </li>
+
+                    @* ── Dil seçici ── *@
+                    <li class="nav-item ms-lg-2">
+                        <div class="lang-switcher d-flex align-items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                 style="opacity:.6;vertical-align:middle">
+                                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                            <a href="/Language/Switch?lang=tr&returnUrl=@Uri.EscapeDataString(returnUrl)"
+                               class="lang-btn @(T.Lang == "tr" ? "lang-active" : "")">TR</a>
+                            <span style="opacity:.3;font-size:.75rem">|</span>
+                            <a href="/Language/Switch?lang=en&returnUrl=@Uri.EscapeDataString(returnUrl)"
+                               class="lang-btn @(T.Lang == "en" ? "lang-active" : "")">EN</a>
+                        </div>
                     </li>
 
                     @if (Context.Session.GetString("UserType") == "Registered")
@@ -78,20 +96,20 @@
                         <li class="nav-item">
                             <a class="btn btn-outline-primary rounded-4 px-3"
                                asp-controller="Auth" asp-action="Logout">
-                                Çıkış Yap
+                                @T["nav.logout"]
                             </a>
                         </li>
                     }
                     else if (Context.Session.GetString("UserType") == "Guest")
                     {
                         <li class="nav-item ms-lg-3">
-                            <span class="nav-guest-pill">Misafir</span>
+                            <span class="nav-guest-pill">@T["nav.guest"]</span>
                         </li>
 
                         <li class="nav-item">
                             <a class="btn btn-primary rounded-4 px-3"
                                asp-controller="Auth" asp-action="Login">
-                                Giriş Yap
+                                @T["nav.login"]
                             </a>
                         </li>
                     }
@@ -100,7 +118,7 @@
                         <li class="nav-item ms-lg-3">
                             <a class="btn btn-primary rounded-4 px-3"
                                asp-controller="Auth" asp-action="Login">
-                                Giriş Yap
+                                @T["nav.login"]
                             </a>
                         </li>
                     }
@@ -123,13 +141,13 @@
                 <div class="col-md-6">
                     <h5 class="fw-bold mb-1" style="color:var(--text-1)">True Frame</h5>
                     <p class="mb-0" style="color:var(--text-2);font-size:.9rem">
-                        Yapay Zekâ Üretimi Görsel Tespiti ve Görsel Kalite Analizi Sistemi
+                        @T["footer.desc"]
                     </p>
                 </div>
 
                 <div class="col-md-6 text-md-end mt-3 mt-md-0">
                     <p class="mb-1" style="color:var(--text-3);font-size:.85rem">
-                        Beykent Üniversitesi — Yazılım Mühendisliği
+                        @T["footer.uni"]
                     </p>
                     <p class="mb-0" style="color:var(--text-3);font-size:.85rem">
                         Emine Balıktay &bull; Nisa Şahinoğlu &bull; Reyyan Çadırcı

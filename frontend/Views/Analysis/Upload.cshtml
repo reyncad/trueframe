@@ -1,5 +1,5 @@
-﻿@{
-    ViewData["Title"] = "Analiz Yap";
+@{
+    ViewData["Title"] = T["nav.analyze"];
 }
 
 <section class="upload-page">
@@ -7,14 +7,14 @@
     <div class="container py-5">
 
         <div class="text-center mb-5">
-            <span class="section-label">Görsel Analizi</span>
+            <span class="section-label">@T["up.label"]</span>
 
             <h1 class="section-title">
-                Görselini yükle ve analiz başlat
+                @T["up.title"]
             </h1>
 
             <p class="section-desc">
-                Real/Fake analizi ve görsel kalite değerlendirmesi için JPG, PNG veya WEBP formatında bir görsel yükle.
+                @T["up.desc"]
             </p>
         </div>
 
@@ -38,9 +38,9 @@
                             @if (Context.Session.GetString("UserType") == "Guest")
                             {
                                 <div>
-                                    <strong>Misafir Kullanıcı</strong>
+                                    <strong>@T["up.guest.title"]</strong>
                                     <p>
-                                        Kalan analiz hakkı:
+                                        @T["up.guest.desc"]
                                         @Context.Session.GetString("GuestLimit")
                                     </p>
                                 </div>
@@ -52,10 +52,8 @@
                             else
                             {
                                 <div>
-                                    <strong>Kayıtlı Kullanıcı</strong>
-                                    <p>
-                                        Sınırsız analiz ve geçmiş kayıt erişimi aktif.
-                                    </p>
+                                    <strong>@T["up.reg.title"]</strong>
+                                    <p>@T["up.reg.desc"]</p>
                                 </div>
 
                                 <span class="user-pill registered">
@@ -70,17 +68,14 @@
                         <div class="user-status-box mb-4">
 
                             <div>
-                                <strong>Oturum açılmadı</strong>
-
-                                <p>
-                                    Analiz yapabilirsin, ancak geçmiş kayıtlar için giriş yapman gerekir.
-                                </p>
+                                <strong>@T["up.no.title"]</strong>
+                                <p>@T["up.no.desc"]</p>
                             </div>
 
                             <a asp-controller="Auth"
                                asp-action="Login"
                                class="btn btn-outline-primary rounded-4">
-                                Giriş Yap
+                                @T["up.login"]
                             </a>
 
                         </div>
@@ -105,19 +100,11 @@
                                 +
                             </div>
 
-                            <h4>
-                                Görsel seç veya buraya sürükle
-                            </h4>
+                            <h4>@T["up.drop"]</h4>
 
-                            <p>
-                                Desteklenen formatlar:
-                                JPG, PNG, WEBP, TIFF, BMP
-                            </p>
+                            <p>@T["up.formats"]</p>
 
-                            <small>
-                                Önerilen maksimum dosya boyutu:
-                                5 MB
-                            </small>
+                            <small>@T["up.maxsize"]</small>
 
                         </label>
 
@@ -127,9 +114,7 @@
 
                             <div class="preview-header">
 
-                                <strong>
-                                    Görsel Ön İzleme
-                                </strong>
+                                <strong>@T["up.preview"]</strong>
 
                                 <span id="fileName">
                                     image
@@ -145,16 +130,16 @@
 
                         <div class="analysis-options mt-4">
 
-                            <h5>Analiz Türü Seç</h5>
-                            <p>İstersen tek analiz seçebilir veya iki analizi birlikte çalıştırabilirsin.</p>
+                            <h5>@T["up.type"]</h5>
+                            <p>@T["up.type.desc"]</p>
 
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label class="analysis-option">
                                         <input type="checkbox" name="realFakeSelected" value="true" />
                                         <div>
-                                            <strong>Real / Fake Analizi</strong>
-                                            <span>AI üretim olasılığı ve güven oranı</span>
+                                            <strong>@T["up.rf"]</strong>
+                                            <span>@T["up.rf.desc"]</span>
                                         </div>
                                     </label>
                                 </div>
@@ -162,31 +147,31 @@
                                     <label class="analysis-option">
                                         <input type="checkbox" name="qualitySelected" value="true" />
                                         <div>
-                                            <strong>Görsel Kalite Analizi</strong>
-                                            <span>Netlik, kontrast, gürültü ve kalite skoru</span>
+                                            <strong>@T["up.q"]</strong>
+                                            <span>@T["up.q.desc"]</span>
                                         </div>
                                     </label>
                                 </div>
                             </div>
 
                             <div class="default-info mt-3">
-                                Hiçbir seçenek işaretlenmezse iki analiz birlikte çalıştırılır.
+                                @T["up.default"]
                             </div>
 
                         </div>
 
                         <div class="analysis-options mt-3" id="profileSection">
 
-                            <h5>Yayın Profili</h5>
-                            <p>Kalite standartlarını kullanım amacına göre değerlendirmek için bir profil seç.</p>
+                            <h5>@T["up.profile"]</h5>
+                            <p>@T["up.profile.desc"]</p>
 
                             <div class="row g-2">
                                 <div class="col-6 col-md-4">
                                     <label class="profile-option">
                                         <input type="radio" name="profile" value="none" checked />
                                         <div>
-                                            <strong>🔬 Genel Analiz</strong>
-                                            <span>Standart değerlendirme</span>
+                                            <strong>🔬 @(T.Lang == "tr" ? "Genel Analiz" : "General")</strong>
+                                            <span>@(T.Lang == "tr" ? "Standart değerlendirme" : "Standard evaluation")</span>
                                         </div>
                                     </label>
                                 </div>
@@ -194,8 +179,8 @@
                                     <label class="profile-option">
                                         <input type="radio" name="profile" value="social" />
                                         <div>
-                                            <strong>📱 Sosyal Medya</strong>
-                                            <span>Instagram, Twitter vb.</span>
+                                            <strong>📱 @(T.Lang == "tr" ? "Sosyal Medya" : "Social Media")</strong>
+                                            <span>Instagram, Twitter @(T.Lang == "tr" ? "vb." : "etc.")</span>
                                         </div>
                                     </label>
                                 </div>
@@ -204,7 +189,7 @@
                                         <input type="radio" name="profile" value="web" />
                                         <div>
                                             <strong>🌐 Web / Blog</strong>
-                                            <span>Web sitesi görselleri</span>
+                                            <span>@(T.Lang == "tr" ? "Web sitesi görselleri" : "Website images")</span>
                                         </div>
                                     </label>
                                 </div>
@@ -212,8 +197,8 @@
                                     <label class="profile-option">
                                         <input type="radio" name="profile" value="print" />
                                         <div>
-                                            <strong>🖨️ Baskı (300 DPI)</strong>
-                                            <span>A4 baskı kalitesi</span>
+                                            <strong>🖨️ @(T.Lang == "tr" ? "Baskı (300 DPI)" : "Print (300 DPI)")</strong>
+                                            <span>@(T.Lang == "tr" ? "A4 baskı kalitesi" : "A4 print quality")</span>
                                         </div>
                                     </label>
                                 </div>
@@ -221,8 +206,8 @@
                                     <label class="profile-option">
                                         <input type="radio" name="profile" value="news" />
                                         <div>
-                                            <strong>📰 Haber Ajansı</strong>
-                                            <span>Gazetecilik standartları</span>
+                                            <strong>📰 @(T.Lang == "tr" ? "Haber Ajansı" : "News Agency")</strong>
+                                            <span>@(T.Lang == "tr" ? "Gazetecilik standartları" : "Journalism standards")</span>
                                         </div>
                                     </label>
                                 </div>
@@ -233,7 +218,7 @@
                         <button type="submit"
                                 class="btn btn-primary btn-lg rounded-4 w-100 mt-4">
 
-                            Analizi Başlat
+                            @T["up.btn"]
 
                         </button>
 
@@ -247,17 +232,14 @@
 
                 <div class="side-info-card">
 
-                    <h4>
-                        Bu ekranda ne yapılır?
-                    </h4>
+                    <h4>@T["up.side.title"]</h4>
 
                     <ul>
-                        <li>Görsel sisteme yüklenir.</li>
-                        <li>Yüklenen görsel ön izleme olarak gösterilir.</li>
-                        <li>Real/Fake ve kalite analizi seçilir.</li>
-                        <li>Sonuçlar tek bir ekranda kullanıcıya sunulur.</li>
+                        <li>@T["up.side.l1"]</li>
+                        <li>@T["up.side.l2"]</li>
+                        <li>@T["up.side.l3"]</li>
+                        <li>@T["up.side.l4"]</li>
                     </ul>
-
 
                 </div>
 
@@ -279,13 +261,9 @@
              role="status">
         </div>
 
-        <h4>
-            Analiz ediliyor...
-        </h4>
+        <h4>@T["up.loading"]</h4>
 
-        <p>
-            Görselin Real/Fake olasılığı ve kalite ölçütleri değerlendiriliyor.
-        </p>
+        <p>@T["up.loading2"]</p>
 
         <div class="progress mt-3">
 
@@ -323,7 +301,7 @@
         if (files.length > 0) {
             fileInput.files = files;
             previewSelectedFile(files[0]);
-            showToast("Görsel başarıyla seçildi.", "success");
+            showToast("@(T.Lang == "tr" ? "Görsel başarıyla seçildi." : "Image selected successfully.")", "success");
         }
     });
 
@@ -335,7 +313,7 @@
         }
 
         previewSelectedFile(file);
-        showToast("Görsel başarıyla seçildi.", "success");
+        showToast("@(T.Lang == "tr" ? "Görsel başarıyla seçildi." : "Image selected successfully.")", "success");
     }
 
     function previewSelectedFile(file) {
@@ -350,7 +328,7 @@
 
     function validateAndShowLoading() {
         if (!fileInput.files || fileInput.files.length === 0) {
-            showToast("Lütfen analiz için bir görsel seçiniz.", "error");
+            showToast("@(T.Lang == "tr" ? "Lütfen analiz için bir görsel seçiniz." : "Please select an image to analyze.")", "error");
             return false;
         }
 
@@ -370,16 +348,12 @@
     }
 
     // ── Profil seçim görsel geri bildirimi ────────────────────
-    // CSS :has(input:checked) tüm tarayıcılarda desteklenmeyebilir;
-    // JS ile 'selected' sınıfı ekleyerek uyumluluğu garantile.
     (function () {
-        // Başlangıçta seçili profil öğesini işaretle
         const defaultRadio = document.querySelector('.profile-option input[type="radio"]:checked');
         if (defaultRadio) {
             defaultRadio.closest('.profile-option').classList.add('selected');
         }
 
-        // Her radyo değişiminde güncelle
         document.querySelectorAll('.profile-option input[type="radio"]').forEach(function (radio) {
             radio.addEventListener('change', function () {
                 document.querySelectorAll('.profile-option').forEach(function (p) {
@@ -389,7 +363,6 @@
             });
         });
 
-        // Analiz türü seçenekleri (checkbox)
         const realFakeCb     = document.querySelector('input[name="realFakeSelected"]');
         const qualityCb      = document.querySelector('input[name="qualitySelected"]');
         const profileSection = document.getElementById('profileSection');

@@ -1,6 +1,6 @@
 @model TrueFrameUI.Models.AnalysisViewModel
 @{
-    ViewData["Title"] = "Rapor Detayı";
+    ViewData["Title"] = T["hist.label"];
     bool showQuality   = Model.QualityScore > 0;
     bool hasSharpMap   = Model.SharpnessGrid != null && Model.SharpnessGrid.Count > 0;
     bool hasHeatmapTab = showQuality && hasSharpMap;
@@ -13,8 +13,8 @@
     @* ── Başlık ─────────────────────────────────────────── *@
     <div class="details-header mb-4">
         <div>
-            <span class="section-label">Rapor Detayı</span>
-            <h1 class="section-title">Analiz raporu detayı</h1>
+            <span class="section-label">@T["res.label"]</span>
+            <h1 class="section-title">@T["res.title"]</h1>
             @if (!string.IsNullOrEmpty(Model.OriginalName))
             {
                 <p class="section-desc text-start ms-0">
@@ -26,7 +26,7 @@
                 </p>
             }
         </div>
-        <a asp-controller="Analysis" asp-action="History" class="btn btn-outline-primary rounded-4">Kayıtlara Dön</a>
+        <a asp-controller="Analysis" asp-action="History" class="btn btn-outline-primary rounded-4">@(T.Lang == "tr" ? "Kayıtlara Dön" : "Back to Records")</a>
     </div>
 
     @if (!string.IsNullOrEmpty(Model.ErrorMessage))
@@ -41,20 +41,20 @@
 
         <div class="status-success-box mb-4">
             <div><strong>@Model.StatusMessage</strong></div>
-            <span>Saved</span>
+            <span>@(T.Lang == "tr" ? "Kaydedildi" : "Saved")</span>
         </div>
 
         @* Sekme navigasyonu *@
         <div class="result-nav-tabs" id="detailTabs">
-            <button class="active" data-tab="genel">Genel</button>
+            <button class="active" data-tab="genel">@T["res.tab.gen"]</button>
             @if (showQuality)
             {
-                <button data-tab="teknik">Teknik &amp; EXIF</button>
-                <button data-tab="histogram">Histogram &amp; Renk</button>
+                <button data-tab="teknik">@T["res.tab.tech"]</button>
+                <button data-tab="histogram">@T["res.tab.hist"]</button>
             }
             @if (hasHeatmapTab)
             {
-                <button data-tab="heatmap">Keskinlik Haritası</button>
+                <button data-tab="heatmap">@T["res.tab.heat"]</button>
             }
         </div>
 
@@ -458,9 +458,9 @@
 
     @* Rapor butonları *@
     <div class="text-center mt-3 mb-5 d-flex gap-2 justify-content-center">
-        <button id="pdfBtn" onclick="exportTrueFramePdf('pdfBtn')" class="btn btn-outline-secondary rounded-4 px-4">PDF İndir</button>
+        <button id="pdfBtn" onclick="exportTrueFramePdf('pdfBtn')" class="btn btn-outline-secondary rounded-4 px-4">@T["res.pdf"]</button>
         <a asp-controller="Analysis" asp-action="Report" asp-route-id='@Context.Request.RouteValues["id"]'
-           target="_blank" class="btn btn-outline-primary rounded-4 px-4">HTML Rapor Aç</a>
+           target="_blank" class="btn btn-outline-primary rounded-4 px-4">@T["res.html"]</a>
     </div>
 
     }@* /else *@
@@ -502,8 +502,10 @@ function onTabShow(tab) {
         new Chart(ctx, {
             type: 'radar',
             data: {
-                labels: ['Keskinlik','Gürültü','Pozlama','Renk','Estetik','Teknik'],
-                datasets: [{ label:'Kalite',
+                labels: @(T.Lang == "tr"
+                    ? "['Keskinlik','Gürültü','Pozlama','Renk','Estetik','Teknik']"
+                    : "['Sharpness','Noise','Exposure','Color','Aesthetics','Technical']"),
+                datasets: [{ label:'@(T.Lang == "tr" ? "Kalite" : "Quality")',
                     data: [@Model.Sharpness.ToString("F1",IC),@Model.Noise.ToString("F1",IC),@Model.Exposure.ToString("F1",IC),
                            @Model.Color.ToString("F1",IC),@Model.Aesthetics.ToString("F1",IC),@Model.Technical.ToString("F1",IC)],
                     backgroundColor:'rgba(37,99,235,.15)', borderColor:'#2563eb', pointBackgroundColor:'#2563eb' }]

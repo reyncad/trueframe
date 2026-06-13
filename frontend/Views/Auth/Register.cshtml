@@ -1,5 +1,5 @@
-﻿@{
-    ViewData["Title"] = "Kayıt Ol";
+@{
+    ViewData["Title"] = T["reg.title"];
 }
 
 <div class="auth-page">
@@ -13,11 +13,11 @@
         </div>
 
         <h2 class="fw-bold text-center mb-2">
-            Hesap Oluştur
+            @T["reg.title"]
         </h2>
 
         <p class="text-muted text-center mb-4">
-            Sınırsız analiz yapmak ve geçmiş analiz kayıtlarına erişmek için kayıt ol.
+            @T["reg.sub"]
         </p>
 
         @if (ViewBag.Error != null)
@@ -29,59 +29,59 @@
             @Html.AntiForgeryToken()
 
             <div class="mb-3">
-                <label class="form-label">Ad Soyad</label>
+                <label class="form-label">@T["reg.name"]</label>
                 <input type="text"
                        name="fullName"
                        class="form-control form-control-lg rounded-4"
-                       placeholder="Adınızı ve soyadınızı giriniz"
+                       placeholder="@T["reg.name"]"
                        required />
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Kullanıcı Adı</label>
+                <label class="form-label">@T["reg.user"]</label>
                 <input type="text"
                        name="username"
                        class="form-control form-control-lg rounded-4"
-                       placeholder="Kullanıcı adınızı giriniz"
+                       placeholder="@T["reg.user"]"
                        required />
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Şifre</label>
+                <label class="form-label">@T["reg.pass"]</label>
                 <input type="password"
                        name="password"
                        id="password"
                        class="form-control form-control-lg rounded-4"
-                       placeholder="Şifrenizi oluşturunuz"
+                       placeholder="@T["reg.pass"]"
                        required />
             </div>
 
             <div class="mb-4">
-                <label class="form-label">Şifre Tekrar</label>
+                <label class="form-label">@T["reg.confirm"]</label>
                 <input type="password"
                        name="confirmPassword"
                        id="confirmPassword"
                        class="form-control form-control-lg rounded-4"
-                       placeholder="Şifrenizi tekrar giriniz"
+                       placeholder="@T["reg.confirm"]"
                        required />
                 <div class="form-text text-danger d-none" id="passwordMismatch">
-                    Şifreler eşleşmiyor.
+                    @T["reg.mismatch"]
                 </div>
             </div>
 
             <button type="submit" class="btn btn-primary w-100 btn-lg rounded-4">
-                Kayıt Ol
+                @T["reg.btn"]
             </button>
 
         </form>
 
         <div class="text-center mt-4">
             <p class="text-muted mb-1">
-                Zaten hesabın var mı?
+                @T["reg.hasacc"]
             </p>
 
             <a asp-controller="Auth" asp-action="Login" class="text-decoration-none fw-bold">
-                Giriş yap
+                @T["reg.tologin"]
             </a>
         </div>
 
@@ -89,7 +89,7 @@
 
         <div class="text-center">
             <a asp-controller="Auth" asp-action="Guest" class="text-decoration-none text-muted">
-                Misafir olarak devam et
+                @T["reg.guest"]
             </a>
         </div>
 

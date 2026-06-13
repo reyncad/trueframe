@@ -1,5 +1,5 @@
-﻿@{
-    ViewData["Title"] = "Giriş Yap";
+@{
+    ViewData["Title"] = T["login.title"];
 }
 
 <div class="auth-page">
@@ -13,13 +13,11 @@
         </div>
 
         <h2 class="fw-bold text-center mb-2">
-            Giriş Yap
+            @T["login.title"]
         </h2>
 
-     
-
         <p class="text-muted text-center mb-4">
-            Geçmiş analizlerine erişmek ve sınırsız analiz hakkı kullanmak için giriş yap.
+            @T["login.sub"]
         </p>
 
         @if (TempData["AccessError"] != null)
@@ -35,36 +33,36 @@
             @Html.AntiForgeryToken()
 
             <div class="mb-3">
-                <label class="form-label">Kullanıcı Adı</label>
+                <label class="form-label">@T["login.user"]</label>
                 <input type="text"
                        name="username"
                        class="form-control form-control-lg rounded-4"
-                       placeholder="Kullanıcı adınızı giriniz"
+                       placeholder="@T["login.user"]"
                        required />
             </div>
 
             <div class="mb-4">
-                <label class="form-label">Şifre</label>
+                <label class="form-label">@T["login.pass"]</label>
                 <input type="password"
                        name="password"
                        class="form-control form-control-lg rounded-4"
-                       placeholder="Şifrenizi giriniz"
+                       placeholder="@T["login.pass"]"
                        required />
             </div>
 
             <button type="submit" class="btn btn-primary w-100 btn-lg rounded-4">
-                Giriş Yap
+                @T["login.btn"]
             </button>
 
         </form>
 
         <div class="text-center mt-4">
             <p class="text-muted mb-1">
-                Hesabın yok mu?
+                @T["login.noacc"]
             </p>
 
             <a asp-controller="Auth" asp-action="Register" class="text-decoration-none fw-bold">
-                Kayıt ol
+                @T["login.toreg"]
             </a>
         </div>
 
@@ -72,7 +70,7 @@
 
         <div class="text-center">
             <a asp-controller="Auth" asp-action="Guest" class="text-decoration-none text-muted">
-                Misafir olarak devam et
+                @T["login.guest"]
             </a>
         </div>
 
