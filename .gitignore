@@ -58,3 +58,6 @@ backend/data/iqa_history.db
 .env
 
 # backend/models/*.onnx ve *.pt → Git LFS üzerinden takip edilir
+frontend/obj/
+backend/models/trueframe_v2/*.onnx
+backend/models/trueframe_v2/*.pt
