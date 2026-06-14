@@ -13,7 +13,7 @@ RUN dotnet restore
 
 # Kaynak kodun tamamını kopyala ve yayımla
 COPY . .
-RUN dotnet publish -c Release -o /app/publish --no-restore
+RUN dotnet publish -c Release -o /app/publish 
 
 # Aşama 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime

@@ -269,77 +269,173 @@ def render_html_report(data: dict[str, Any]) -> str:
 <head>
 <meta charset="UTF-8"/>
 <title>IQA Rapor — {name}</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
-  .pdf-btn{{position:fixed;top:16px;right:16px;z-index:999;background:#c8f040;color:#08080f;border:none;padding:10px 20px;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;border-radius:6px;cursor:pointer;letter-spacing:1px;box-shadow:0 2px 12px rgba(200,240,64,.3)}}
-  .pdf-btn:hover{{background:#d8ff50}}
-  .pdf-btn:disabled{{opacity:.5;cursor:wait}}
-  @media print{{.pdf-btn{{display:none}}}}
-  *{{box-sizing:border-box;margin:0;padding:0}}
-  body{{background:#08080f;color:#e4e4f0;font-family:'Syne',sans-serif;padding:32px;line-height:1.5}}
-  .mono{{font-family:'Space Mono',monospace}}
-  h1{{font-size:1.6rem;font-weight:800;letter-spacing:-0.5px}}
-  h2{{font-size:1rem;font-weight:700;margin:24px 0 10px;padding-bottom:4px;border-bottom:1px solid #2a2a3a;color:#8080b0}}
-  .header{{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #c8f040}}
-  .score-big{{font-size:3.5rem;font-weight:800;line-height:1;color:{score_color};font-family:'Space Mono',monospace}}
-  .verdict-box{{background:#0e0e18;border:1px solid #2a2a3a;border-left:3px solid #c8f040;padding:14px 18px;border-radius:6px;margin-bottom:20px;font-size:.88rem;line-height:1.7}}
-  .grid2{{display:grid;grid-template-columns:1fr 1fr;gap:20px}}
-  .grid3{{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}}
-  table{{width:100%;border-collapse:collapse;font-size:.82rem}}
-  td{{padding:7px 10px;border-bottom:1px solid #1a1a28}}
-  .dim-card{{background:#0e0e18;border:1px solid #2a2a3a;border-radius:6px;padding:12px;text-align:center}}
-  .dim-val{{font-size:1.8rem;font-weight:800;font-family:'Space Mono',monospace}}
-  .dim-label{{font-size:.7rem;color:#5a5a88;font-family:'Space Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-top:2px}}
-  .section{{margin-bottom:24px}}
-  .pill{{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75rem;font-family:'Space Mono',monospace;border:1px solid;margin:2px}}
-  .footer{{margin-top:32px;padding-top:12px;border-top:1px solid #2a2a3a;font-size:.72rem;color:#3a3a5a;font-family:'Space Mono',monospace;display:flex;justify-content:space-between}}
-  @media print{{body{{background:white;color:black}}}}
+  :root {{
+    --bg-color: #0b0f19;
+    --card-bg: #151a28;
+    --card-border: #23293e;
+    --accent: #c8f040;
+    --accent-hover: #d8ff50;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --alert-red: #f87171;
+    --alert-green: #34d399;
+    --alert-orange: #fb923c;
+    --info-cyan: #38bdf8;
+  }}
+
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  
+  body {{ 
+    background: var(--bg-color); 
+    color: var(--text-main); 
+    font-family: 'Inter', sans-serif; 
+    padding: 40px; 
+    line-height: 1.6; 
+  }}
+  
+  .mono {{ font-family: 'JetBrains Mono', monospace; }}
+  
+  /* Buton Stili */
+  .pdf-btn {{
+    position: fixed; top: 24px; right: 24px; z-index: 999;
+    background: var(--accent); color: #0b0f19; border: none;
+    padding: 12px 24px; font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 700; border-radius: 8px;
+    cursor: pointer; letter-spacing: 0.5px;
+    box-shadow: 0 4px 20px rgba(200, 240, 64, 0.25);
+    transition: all 0.2s ease;
+  }}
+  .pdf-btn:hover {{ background: var(--accent-hover); transform: translateY(-2px); }}
+  .pdf-btn:disabled {{ opacity: 0.6; cursor: wait; transform: none; }}
+  @media print {{ .pdf-btn {{ display: none; }} }}
+  
+  /* Başlıklar ve Kartlar */
+  h1 {{ font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; color: #ffffff; }}
+  h2 {{ 
+    font-size: 1.05rem; font-weight: 600; margin: 32px 0 16px; 
+    padding-bottom: 8px; border-bottom: 1px solid var(--card-border); 
+    color: var(--text-main); display: flex; align-items: center; gap: 8px;
+  }}
+  
+  .card {{ 
+    background: var(--card-bg); border: 1px solid var(--card-border); 
+    border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }}
+  
+  /* Header Alanı */
+  .header {{ 
+    display: flex; justify-content: space-between; align-items: center; 
+    margin-bottom: 32px; padding-bottom: 24px; border-bottom: 2px solid var(--accent); 
+  }}
+  
+  /* Skor Alanı */
+  .score-big {{ 
+    font-size: 4.5rem; font-weight: 800; line-height: 1; 
+    color: {score_color}; font-family: 'JetBrains Mono', monospace; 
+    text-shadow: 0 0 40px rgba(200, 240, 64, 0.1);
+  }}
+  
+  .verdict-box {{ 
+    background: rgba(200, 240, 64, 0.05); border: 1px solid var(--card-border); 
+    border-left: 4px solid var(--accent); padding: 16px 20px; 
+    border-radius: 8px; margin-bottom: 24px; font-size: 0.95rem; line-height: 1.7; 
+  }}
+  
+  /* Grid Yapıları */
+  .grid2 {{ display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }}
+  .grid3 {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }}
+  .section {{ margin-bottom: 24px; }}
+  
+  /* Tablolar */
+  table {{ width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left; }}
+  thead td {{ color: var(--text-muted); font-weight: 600; padding-bottom: 12px; border-bottom: 2px solid var(--card-border); }}
+  td {{ padding: 10px 12px; border-bottom: 1px solid var(--card-border); vertical-align: middle; }}
+  tr:last-child td {{ border-bottom: none; }}
+  
+  /* 6 Boyutlu Kartlar */
+  .dim-card {{ 
+    background: var(--card-bg); border: 1px solid var(--card-border); 
+    border-radius: 10px; padding: 16px; text-align: center; 
+    transition: transform 0.2s, border-color 0.2s; 
+  }}
+  .dim-card:hover {{ transform: translateY(-3px); border-color: var(--text-muted); }}
+  .dim-val {{ font-size: 2rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; margin-bottom: 4px; }}
+  .dim-label {{ font-size: 0.75rem; color: var(--text-muted); font-family: 'Inter', sans-serif; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }}
+  
+  /* Pill Etiketler */
+  .pill {{ 
+    display: inline-block; padding: 4px 12px; border-radius: 20px; 
+    font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; 
+    background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); margin: 2px; 
+  }}
+  
+  /* Alt Bilgi */
+  .footer {{ 
+    margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--card-border); 
+    font-size: 0.75rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; 
+    display: flex; justify-content: space-between; align-items: center; 
+  }}
+  
+  @media print {{ body {{ background: white; color: black; padding: 20px; }} .card, .dim-card, .verdict-box {{ border: 1px solid #ccc; background: #fff; box-shadow: none; }} td {{ border-bottom: 1px solid #eee; }} }}
 </style>
 </head>
 <body>
 
 <div class="header">
   <div>
-    <div class="mono" style="font-size:9px;letter-spacing:4px;color:#c8f040;text-transform:uppercase;margin-bottom:6px"> True Frame · Analiz Raporu</div>
+    <div class="mono" style="font-size:10px; letter-spacing:3px; color:var(--accent); text-transform:uppercase; margin-bottom:8px; font-weight:700;">
+      True Frame · Analiz Raporu
+    </div>
     <h1>{name}</h1>
-    <div class="mono" style="font-size:10px;color:#5a5a88;margin-top:4px">{created_at} · {tech.get("width","??")}×{tech.get("height","??")}px · {tech.get("megapixels","?")} MP</div>
+    <div class="mono" style="font-size:11px; color:var(--text-muted); margin-top:6px;">
+      {created_at} &nbsp;·&nbsp; {tech.get("width","??")}×{tech.get("height","??")}px &nbsp;·&nbsp; {tech.get("megapixels","?")} MP
+    </div>
   </div>
-  <div style="text-align:right">
+  <div style="text-align:right; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
     {thumb_html}
   </div>
 </div>
 
-<div class="section" style="display:flex;gap:28px;align-items:center;margin-bottom:24px">
-  <div>
-    <div class="mono" style="font-size:9px;letter-spacing:2px;color:#5a5a88;text-transform:uppercase">Genel Kalite Skoru</div>
-    <div class="score-big">{overall:.0f}<span style="font-size:1.4rem;color:#5a5a88">/100</span></div>
-    <div class="mono" style="font-size:10px;color:#5a5a88;margin-top:4px">Profil: {profile.get("profile_label","Genel")} · {profile.get("passed","?")}/{profile.get("total","?")} kontrol geçildi</div>
+<div class="section card" style="display:flex; gap:40px; align-items:center; margin-bottom:32px;">
+  <div style="flex: 1;">
+    <div class="mono" style="font-size:11px; letter-spacing:1px; color:var(--text-muted); text-transform:uppercase; margin-bottom: 8px;">Genel Kalite Skoru</div>
+    <div class="score-big">{overall:.0f}<span style="font-size:1.8rem; color:var(--card-border);">/100</span></div>
+    <div style="font-size:13px; color:var(--text-muted); margin-top:12px; display:flex; align-items:center; gap:8px;">
+      <span style="background:var(--card-border); padding:2px 8px; border-radius:4px; color:#fff;">Profil: {profile.get("profile_label","Genel")}</span>
+      <span>{profile.get("passed","?")}/{profile.get("total","?")} kontrol geçildi</span>
+    </div>
   </div>
-  {_radar_svg(dims, 220)}
+  <div style="flex-shrink: 0; filter: drop-shadow(0 0 10px rgba(255,255,255,0.05));">
+    {_radar_svg(dims, 240)}
+  </div>
 </div>
 
 {"" if not has_ai_analysis or not ai_label else f'''
-<div class="section" style="margin-bottom:20px">
-  <h2>AI / Sahte Tespit</h2>
-  <div style="background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;padding:14px 18px;display:flex;flex-wrap:wrap;gap:24px;align-items:center">
-    <div>
-      <div class="mono" style="font-size:9px;letter-spacing:2px;color:#5a5a88;text-transform:uppercase">Tespit Sonucu</div>
-      <div style="font-size:1.4rem;font-weight:800;color:{_ai_label_col};font-family:Space Mono,monospace">{ai_label}</div>
-      <div class="mono" style="font-size:10px;color:#5a5a88;margin-top:2px">Güven: {_ai_conf_pct}%</div>
+<div class="section" style="margin-bottom:32px;">
+  <h2><span style="color:var(--accent);">●</span> AI / Sahte Tespit</h2>
+  <div class="card" style="display:flex; flex-wrap:wrap; gap:32px; align-items:center; border-left: 3px solid {_ai_label_col};">
+    <div style="flex: 1; min-width: 150px;">
+      <div class="mono" style="font-size:10px; letter-spacing:1px; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Tespit Sonucu</div>
+      <div style="font-size:1.6rem; font-weight:800; color:{_ai_label_col}; font-family:'JetBrains Mono', monospace; text-transform:uppercase;">{ai_label}</div>
+      <div class="mono" style="font-size:11px; color:var(--text-muted); margin-top:4px;">Güven Skoru: {_ai_conf_pct}%</div>
     </div>
-    <div style="display:flex;gap:20px">
+    
+    <div style="display:flex; gap:32px; flex: 2; justify-content: space-around; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px;">
       <div style="text-align:center">
-        <div class="mono" style="font-size:9px;color:#5a5a88;text-transform:uppercase">AI Olasılığı</div>
-        <div style="font-size:1.5rem;font-weight:800;color:#f04060;font-family:Space Mono,monospace">{_ai_fake_pct}<span style="font-size:.8rem">%</span></div>
+        <div class="mono" style="font-size:10px; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">AI Olasılığı</div>
+        <div style="font-size:1.8rem; font-weight:800; color:var(--alert-red); font-family:'JetBrains Mono', monospace;">{_ai_fake_pct}<span style="font-size:1rem; color:var(--text-muted);">%</span></div>
       </div>
       <div style="text-align:center">
-        <div class="mono" style="font-size:9px;color:#5a5a88;text-transform:uppercase">Gerçek Olasılığı</div>
-        <div style="font-size:1.5rem;font-weight:800;color:#40f088;font-family:Space Mono,monospace">{_ai_real_pct}<span style="font-size:.8rem">%</span></div>
+        <div class="mono" style="font-size:10px; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">Gerçek Olasılığı</div>
+        <div style="font-size:1.8rem; font-weight:800; color:var(--alert-green); font-family:'JetBrains Mono', monospace;">{_ai_real_pct}<span style="font-size:1rem; color:var(--text-muted);">%</span></div>
       </div>
-      {"" if not ai_manip else f"<div style='text-align:center'><div class='mono' style='font-size:9px;color:#5a5a88;text-transform:uppercase'>Manipülasyon</div><div style='font-size:1.5rem;font-weight:800;color:#f07040;font-family:Space Mono,monospace'>{_ai_manip_pct}<span style='font-size:.8rem'>%</span></div></div>"}
+      {"" if not ai_manip else f"<div style='text-align:center'><div class='mono' style='font-size:10px; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;'>Manipülasyon</div><div style='font-size:1.8rem; font-weight:800; color:var(--alert-orange); font-family:JetBrains Mono, monospace;'>{_ai_manip_pct}<span style='font-size:1rem; color:var(--text-muted);'>%</span></div></div>"}
     </div>
-    {"<div style='background:#1a0f0f;border:1px solid #f04060;border-radius:6px;padding:8px 14px;color:#f04060;font-size:.82rem'><strong>⚠ Manipülasyon Tespit Edildi</strong></div>" if ai_manip else ""}
+    
+    {"<div style='width: 100%; background:rgba(248,113,113,0.1); border:1px solid var(--alert-red); border-radius:8px; padding:12px 16px; color:var(--alert-red); font-size:0.9rem; display:flex; align-items:center; gap:10px;'><strong>⚠ Dikkat:</strong> Manipülasyon Tespit Edildi</div>" if ai_manip else ""}
   </div>
 </div>
 '''}
@@ -356,9 +452,16 @@ def render_html_report(data: dict[str, Any]) -> str:
 
 {"" if not profile.get("checks") else f'''
 <h2>{profile.get("profile_label","Profil")} Kontrol Listesi</h2>
-<div class="section">
+<div class="section card" style="padding: 16px 24px;">
   <table>
-    <thead><tr><td></td><td><b>Kontrol</b></td><td><b>Değer</b></td><td><b>Gerekli</b></td></tr></thead>
+    <thead>
+      <tr>
+        <td style="width: 40px;">Durum</td>
+        <td><b>Kontrol Kriteri</b></td>
+        <td><b>Mevcut Değer</b></td>
+        <td><b>Gerekli Şart</b></td>
+      </tr>
+    </thead>
     <tbody>{checks_html}</tbody>
   </table>
 </div>
@@ -367,72 +470,88 @@ def render_html_report(data: dict[str, Any]) -> str:
 <div class="grid2">
   <div>
     <h2>Görsel Bilgisi</h2>
-    <table>
-      <tr><td style="color:#5a5a88">Çözünürlük</td><td style="color:#40efc8">{tech.get("width","?")}×{tech.get("height","?")} px</td></tr>
-      <tr><td style="color:#5a5a88">Megapiksel</td><td style="color:#40efc8">{tech.get("megapixels","?")} MP</td></tr>
-      <tr><td style="color:#5a5a88">Format</td><td style="color:#40efc8">{tech.get("format","?")}</td></tr>
-      <tr><td style="color:#5a5a88">Renk Modu</td><td style="color:#40efc8">{tech.get("color_mode","?")}</td></tr>
-      <tr><td style="color:#5a5a88">DPI (EXIF)</td><td style="color:#40efc8">{tech.get("dpi_x","—")}</td></tr>
-    </table>
+    <div class="card" style="padding: 16px 24px;">
+      <table>
+        <tr><td style="color:var(--text-muted);">Çözünürlük</td><td style="color:var(--info-cyan); font-weight: 500;">{tech.get("width","?")} × {tech.get("height","?")} px</td></tr>
+        <tr><td style="color:var(--text-muted);">Megapiksel</td><td style="color:var(--info-cyan); font-weight: 500;">{tech.get("megapixels","?")} MP</td></tr>
+        <tr><td style="color:var(--text-muted);">Format</td><td style="color:var(--info-cyan); font-weight: 500;">{tech.get("format","?")}</td></tr>
+        <tr><td style="color:var(--text-muted);">Renk Modu</td><td style="color:var(--info-cyan); font-weight: 500;">{tech.get("color_mode","?")}</td></tr>
+        <tr><td style="color:var(--text-muted);">DPI (EXIF)</td><td style="color:var(--info-cyan); font-weight: 500;">{tech.get("dpi_x","—")}</td></tr>
+      </table>
+    </div>
 
     <h2>EXIF Verisi</h2>
-    <table><tbody>{exif_html}</tbody></table>
+    <div class="card" style="padding: 16px 24px;">
+      <table><tbody>{exif_html}</tbody></table>
+    </div>
   </div>
 
   <div>
-    <h2>Histogram</h2>
-    <div class="section">{_histogram_svg(hist)}</div>
-    <table>
-      <tr><td style="color:#5a5a88">Pozlama</td><td style="color:#40efc8">{hist.get("exposure_label","—")}</td></tr>
-      <tr><td style="color:#5a5a88">Highlight Kırpılması</td><td style="color:#f07070">{hist.get("highlight_clip_pct",0):.1f}%</td></tr>
-      <tr><td style="color:#5a5a88">Shadow Kırpılması</td><td style="color:#7090f0">{hist.get("shadow_clip_pct",0):.1f}%</td></tr>
-      <tr><td style="color:#5a5a88">Dinamik Aralık</td><td style="color:#40efc8">{hist.get("dynamic_range_score",0):.1f}/100</td></tr>
-      <tr><td style="color:#5a5a88">Ort. Parlaklık</td><td style="color:#40efc8">{hist.get("mean_brightness",0):.0f}/255</td></tr>
-    </table>
+    <h2>Histogram Analizi</h2>
+    <div class="card" style="padding: 24px;">
+      <div class="section" style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px;">{_histogram_svg(hist)}</div>
+      <table>
+        <tr><td style="color:var(--text-muted);">Pozlama Durumu</td><td style="color:var(--text-main); font-weight: 500;">{hist.get("exposure_label","—")}</td></tr>
+        <tr><td style="color:var(--text-muted);">Highlight Kırpılması</td><td style="color:var(--alert-red); font-weight: 500;">{hist.get("highlight_clip_pct",0):.1f}%</td></tr>
+        <tr><td style="color:var(--text-muted);">Shadow Kırpılması</td><td style="color:var(--info-cyan); font-weight: 500;">{hist.get("shadow_clip_pct",0):.1f}%</td></tr>
+        <tr><td style="color:var(--text-muted);">Dinamik Aralık Skoru</td><td style="color:var(--accent); font-weight: 500;">{hist.get("dynamic_range_score",0):.1f}/100</td></tr>
+        <tr><td style="color:var(--text-muted);">Ortalama Parlaklık</td><td style="color:var(--text-main); font-weight: 500;">{hist.get("mean_brightness",0):.0f} / 255</td></tr>
+      </table>
+    </div>
 
     <h2>Renk &amp; Gürültü</h2>
-    <table>
-      <tr><td style="color:#5a5a88">Renk Sıcaklığı</td><td style="color:#40efc8">{col.get("temperature_label","—")}</td></tr>
-      <tr><td style="color:#5a5a88">Renk Tonu</td><td style="color:#40efc8">{col.get("cast","nötr")} ({col.get("cast_strength",0):.2f})</td></tr>
-      <tr><td style="color:#5a5a88">Doygunluk</td><td style="color:#40efc8">{col.get("saturation",0):.1f}%</td></tr>
-      <tr><td style="color:#5a5a88">Renk Gürültüsü</td><td style="color:#40efc8">{cn.get("severity","—")}</td></tr>
-    </table>
+    <div class="card" style="padding: 16px 24px;">
+      <table>
+        <tr><td style="color:var(--text-muted);">Renk Sıcaklığı</td><td style="color:var(--text-main); font-weight: 500;">{col.get("temperature_label","—")}</td></tr>
+        <tr><td style="color:var(--text-muted);">Renk Tonu (Cast)</td><td style="color:var(--text-main); font-weight: 500;">{col.get("cast","nötr")} <span style="color:var(--text-muted); font-size: 0.8rem;">({col.get("cast_strength",0):.2f})</span></td></tr>
+        <tr><td style="color:var(--text-muted);">Doygunluk</td><td style="color:var(--text-main); font-weight: 500;">{col.get("saturation",0):.1f}%</td></tr>
+        <tr><td style="color:var(--text-muted);">Renk Gürültüsü</td><td style="color:var(--text-main); font-weight: 500;">{cn.get("severity","—")}</td></tr>
+      </table>
+    </div>
   </div>
 </div>
 
-<h2>Geometri &amp; Blur Analizi</h2>
+<h2>Geometri &amp; Optik Kusurlar</h2>
 <div class="grid3 section">
   <div class="dim-card">
-    <div class="dim-label">Blur Tipi</div>
-    <div style="font-size:1.1rem;font-weight:700;margin:6px 0;color:{'#40f088' if blur_t.get('type')=='sharp' else '#f0c040'}">{blur_t.get("label","—")}</div>
-    <div style="font-size:.72rem;color:#5a5a88">{blur_t.get("description","")}</div>
+    <div class="dim-label">Blur (Bulanıklık) Tipi</div>
+    <div style="font-size:1.2rem; font-weight:700; margin:10px 0; color:{'var(--alert-green)' if blur_t.get('type')=='sharp' else 'var(--alert-orange)'}">{blur_t.get("label","—")}</div>
+    <div style="font-size:0.8rem; color:var(--text-muted);">{blur_t.get("description","")}</div>
   </div>
   <div class="dim-card">
-    <div class="dim-label">Horizon Eğikliği</div>
-    <div style="font-size:1.1rem;font-weight:700;margin:6px 0;color:{'#f04060' if tilt.get('is_tilted') else '#40f088'}">{tilt.get("label","0°")}</div>
-    <div style="font-size:.72rem;color:#5a5a88">{tilt.get("severity", tilt.get("label","Yok"))} · Güven: {(tilt.get("confidence") or 0):.0%}</div>
+    <div class="dim-label">Ufuk Çizgisi (Horizon) Eğikliği</div>
+    <div style="font-size:1.2rem; font-weight:700; margin:10px 0; color:{'var(--alert-red)' if tilt.get('is_tilted') else 'var(--alert-green)'}">{tilt.get("label","0°")}</div>
+    <div style="font-size:0.8rem; color:var(--text-muted);">{tilt.get("severity", tilt.get("label","Yok"))} · Güven: {(tilt.get("confidence") or 0):.0%}</div>
   </div>
   <div class="dim-card">
-    <div class="dim-label">Moire Pattern</div>
-    <div style="font-size:1.1rem;font-weight:700;margin:6px 0;color:{'#f04060' if moire.get('detected') else '#40f088'}">{moire.get("label", moire.get("severity","Yok"))}</div>
-    <div style="font-size:.72rem;color:#5a5a88">Skor: {moire.get("score",0):.0f}/100</div>
+    <div class="dim-label">Moiré Deseni</div>
+    <div style="font-size:1.2rem; font-weight:700; margin:10px 0; color:{'var(--alert-red)' if moire.get('detected') else 'var(--alert-green)'}">{moire.get("label", moire.get("severity","Yok"))}</div>
+    <div style="font-size:0.8rem; color:var(--text-muted);">Skor: {moire.get("score",0):.0f}/100</div>
   </div>
 </div>
 
-<h2>IQA Metrik Skorları</h2>
-<div class="section">
+<h2>IQA Metrik Skorları (Referanssız)</h2>
+<div class="section card" style="padding: 16px 24px;">
   <table>
-    <thead><tr><td></td><td><b>Metrik</b></td><td><b>Skor</b></td><td><b>Kalite</b></td><td><b>Yön</b></td></tr></thead>
+    <thead>
+      <tr>
+        <td style="width: 30px;"></td>
+        <td><b>Metrik Adı</b></td>
+        <td><b>Hesaplanan Skor</b></td>
+        <td><b>Kalite Değerlendirmesi</b></td>
+        <td><b>Değer Yönü</b></td>
+      </tr>
+    </thead>
     <tbody>{iqa_html}</tbody>
   </table>
 </div>
 
 <div class="footer">
-  <span>NR-IQA Vision Lab · Lokal Analiz</span>
-  <span>{created_at}</span>
+  <span><strong>True Frame</strong> · Lokal Görüntü Analiz Motoru</span>
+  <span>Rapor Oluşturulma: {created_at}</span>
 </div>
 
-<button class="pdf-btn" id="pdfBtn" onclick="downloadPdf()">⬇ PDF İndir</button>
+<button class="pdf-btn" id="pdfBtn" onclick="downloadPdf()">⬇ Raporu PDF İndir</button>
 
 <script>
 function downloadPdf() {{
@@ -440,19 +559,20 @@ function downloadPdf() {{
   btn.disabled = true;
   btn.textContent = 'Hazırlanıyor...';
   const opt = {{
-    margin:      [8, 8, 8, 8],
+    margin:      [10, 10, 10, 10],
     filename:    '{_safe_filename(data.get("name", "rapor"))}_iqa_rapor.pdf',
-    image:       {{ type: 'jpeg', quality: 0.95 }},
-    html2canvas: {{ scale: 2, useCORS: true, backgroundColor: '#08080f' }},
+    image:       {{ type: 'jpeg', quality: 0.98 }},
+    html2canvas: {{ scale: 2, useCORS: true, backgroundColor: '#0b0f19' }},
     jsPDF:       {{ unit: 'mm', format: 'a4', orientation: 'portrait' }},
-    pagebreak:   {{ mode: ['avoid-all', 'css'] }},
+    pagebreak:   {{ mode: ['avoid-all', 'css'] }}
   }};
   html2pdf().set(opt).from(document.body).save().then(() => {{
     btn.disabled = false;
-    btn.textContent = '⬇ PDF İndir';
+    btn.textContent = '⬇ Raporu PDF İndir';
   }});
 }}
 </script>
 
 </body>
-</html>"""
+</html>
+"""

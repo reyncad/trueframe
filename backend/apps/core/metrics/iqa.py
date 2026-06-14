@@ -15,10 +15,10 @@ import threading
 import time
 from collections import OrderedDict
 from typing import Any
-
+import time
 import torch
 import pyiqa
-
+import gc
 from core.config import IQA_METRICS, METRIC_WEIGHTS
 
 # ── Cihaz ────────────────────────────────────────────────────
@@ -87,18 +87,31 @@ def _cache_put(key: str, value: dict) -> None:
 # ── Tek metrik çalıştır ───────────────────────────────────────
 
 def run_single_metric(name: str, tmp_path: str) -> dict:
-    """SSE streaming için: tek metriği çalıştır."""
-    if name not in IQA_METRICS:
-        return {"status": "error", "error": "Bilinmeyen metrik"}
+    """RAM'i korumak için modeli anlık yükler, çalıştırır ve tamamen siler."""
     t0 = time.time()
     try:
-        model = get_model(name)
-        score = model(tmp_path).item()
+        # 1. Modeli sadece bu işlem için geçici olarak yükle
+        device = torch.device("cpu")
+        model = pyiqa.create_metric(name, device=device)
+        model.eval()
+
+        # 2. Sadece çıkarım yap (Hafıza ağacı oluşturma)
+        with torch.inference_mode(), torch.no_grad():
+            score_tensor = model(tmp_path)
+            score = score_tensor.item()
+
+        # 3. NÜKLEER TEMİZLİK: Tensörü ve Modeli RAM'den tamamen sil
+        del score_tensor
+        del model
+        
+        # 4. PyTorch'un işletim sistemine RAM'i iade etmesini zorla
+        gc.collect()
+
         return {
             "score":      round(score, 4),
             "elapsed_ms": round((time.time() - t0) * 1000),
             "status":     "ok",
-            "label":      quality_label(score, IQA_METRICS[name]),
+            # "label":      quality_label(score, IQA_METRICS[name]), # Eğer tanımlıysa açın
         }
     except Exception as e:
         return {"status": "error", "error": str(e)}

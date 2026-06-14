@@ -6,6 +6,7 @@ Her modül tek sorumluluğa sahiptir; bu dosya sıralamayı ve birleştirmeyi ya
 
 from __future__ import annotations
 
+import gc  # Bellek temizliği (Garbage Collection) için eklendi
 from PIL import Image
 
 from core.config import IQA_METRICS
@@ -39,8 +40,6 @@ def compute_fast_bundle(pil: Image.Image) -> dict:
     blur_t       = detect_blur_type(pil)
     color_noise  = analyze_color_noise(pil)
     geometry     = analyze_geometry(pil)
-
-   
 
     technical = {
         "width":      pil.width,
@@ -124,7 +123,7 @@ def analyze_image(
     selected_metrics: list[str] | None = None,
     profile_id:       str = "none",
 ) -> dict:
-    """Tam analiz — tek seferde tüm sonuçları döndürür (batch için)."""
+    """Tam analiz — RAM korumalı ve streaming model çalıştırımı ile."""
     if selected_metrics is None:
         selected_metrics = list(IQA_METRICS.keys())
 
@@ -134,9 +133,29 @@ def analyze_image(
         return {"status": "error", "error": str(e), "name": name}
 
     try:
-        bundle      = compute_fast_bundle(pil)
-        eff_tmp     = tmp_path or source
-        iqa_metrics = run_iqa_metrics(eff_tmp, selected_metrics)
+        # 1. Aşama: Hızlı matris analizleri
+        bundle = compute_fast_bundle(pil)
+        
+        # OOM ÖNLEMİ 1: Görsel ile işlemimiz bitti, hemen bellekten sil
+        del pil
+        gc.collect()
+
+        eff_tmp = tmp_path or source
+        iqa_metrics = {}
+
+        # OOM ÖNLEMİ 2: Tüm IQA modellerini aynı anda çağırma. Tek tek çalıştır.
+        for metric in selected_metrics:
+            # Sadece 1 metrik içeren bir liste gönderiyoruz
+            single_metric_result = run_iqa_metrics(eff_tmp, [metric])
+            iqa_metrics.update(single_metric_result)
+            
+            # Her model çalıştıktan sonra tensörleri bellekten zorla temizle
+            gc.collect()
+
+        # 3. Aşama: Sonuçları toparla
         return finalize_analysis(bundle, iqa_metrics, name, profile_id)
+        
     finally:
+        # Ne olursa olsun geçici dosyayı sil ve döngü sonu temizliği yap
         cleanup_tmp(tmp_path)
+        gc.collect()

@@ -15,36 +15,40 @@ version: "3.9"
 services:
 
   # ── Django API ───────────────────────────────────────────────
+ # ── Django API ───────────────────────────────────────────────
+ # ── Django API ───────────────────────────────────────────────
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: trueframe-backend
     restart: unless-stopped
+    shm_size: '8gb'  # <--- RAM (OOM) ÇÖZÜMÜ BURAYA EKLENDİ
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      DJANGO_DEBUG: "False"
-      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,backend,${EXTRA_ALLOWED_HOSTS:-}"
-      # Internal API key — frontend bu key ile doğrulanır
-      TRUEFRAME_API_KEY: ${TRUEFRAME_API_KEY}
+      DJANGO_DEBUG: "True"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,trueframe-backend"
+      DISABLE_MANIP_DETECTOR: "true"
+      # Modellerin kalıcı klasöre inmesini sağlayan ayarlar:
+      HF_HOME: /app/.cache/huggingface
+      TORCH_HOME: /app/.cache/torch
+      XDG_CACHE_HOME: /app/.cache
     volumes:
-      # Model ağırlıkları (model.pt / model.onnx) lokalden mount edilir
+      - ./backend:/app
       - ./backend/models:/app/models:ro
-      # HuggingFace + pyiqa model cache (tekrar indirmeyi önler)
       - model_cache:/app/.cache
-      # SQLite geçmiş veritabanı
       - backend_data:/app/data
-    # Backend portu dışarıya açılmaz — yalnızca frontend'den erişilir
-    expose:
-      - "8000"
+    command: ["gunicorn", "trueframe.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "1", "--timeout", "300", "--worker-tmp-dir", "/tmp"]
+    ports:
+      - "8000:8000"
     networks:
       - trueframe-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s  # Model yükleme süresi
+      retries: 5
+      start_period: 180s
 
   # ── ASP.NET MVC ──────────────────────────────────────────────
   frontend:
