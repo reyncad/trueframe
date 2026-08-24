@@ -61,3 +61,10 @@ backend/data/iqa_history.db
 frontend/obj/
 backend/models/trueframe_v2/*.onnx
 backend/models/trueframe_v2/*.pt
+
+# AI/editor arac config klasorleri
+.claude/
+CLAUDE.md
+AGENTS.md
+.cursor/
+.windsurf/
